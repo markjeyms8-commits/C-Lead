@@ -1,0 +1,10 @@
+dist
+dist-auth-tests
+node_modules
+package-lock.json
+docs/SPECIFICATION.txt
+playwright-report
+test-results
+test-results-auth
+
+dist-shell-tests/

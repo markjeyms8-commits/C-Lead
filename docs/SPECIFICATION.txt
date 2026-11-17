@@ -1,0 +1,1512 @@
+You are the lead full-stack developer responsible for building C-LEAD from an entirely empty working directory.
+
+The current directory contains no project files. Create everything required from scratch.
+
+Work autonomously and implement the application in safe, verifiable phases. Do not stop after merely describing a plan. Begin by inspecting the empty directory, creating a build plan, scaffolding the application, and implementing the foundation.
+
+Do not ask unnecessary questions. Make reasonable implementation decisions that remain consistent with this specification. Ask only when blocked by a decision that would materially change the product or require credentials, paid services, destructive actions, or external account access.
+
+# Core working rules
+
+1. Treat this prompt as the approved product specification.
+2. Do not silently remove approved features.
+3. Do not substitute the locked technology stack.
+4. Never put secrets in source code.
+5. Never commit Supabase service-role keys.
+6. Use TypeScript strict mode.
+7. Use accessible, responsive and reusable components.
+8. Implement authorization in Supabase Row Level Security, not only in the interface.
+9. Create versioned SQL migrations for all database changes.
+10. Use an organized service layer instead of calling Supabase randomly throughout components.
+11. Validate user input in the frontend and database.
+12. Run formatting, type checking, builds and relevant tests after meaningful changes.
+13. Fix errors instead of merely documenting them.
+14. Maintain a progress file at `docs/BUILD_STATUS.md`.
+15. Update the progress file after each completed milestone.
+16. Record important architecture decisions in `docs/DECISIONS.md`.
+17. Keep a sanitized `.env.example`.
+18. Never create a real `.env` containing invented credentials.
+19. If external credentials are unavailable, complete the code and configuration templates, then document the exact setup steps.
+20. Do not initialize or deploy to Vercel, Supabase or GitHub unless explicitly authorized and authenticated.
+21. Do not use destructive production database operations.
+22. Preserve a clean, professional project structure.
+
+# Product identity
+
+Application name: C-LEAD
+
+Pronunciation: “Silid”
+
+Meaning: C-LEAD combines Section C, the Filipino word “silid” meaning classroom, and student leadership.
+
+Tagline:
+
+“Lahat ng ganap, nandito na.”
+
+Mascot:
+
+Ci, a friendly green-and-white cat wearing a dark-green wizard hat with small gold stars.
+
+Visual direction:
+
+- Green-and-white educational interface
+- Deep forest-green primary color
+- Emerald accents
+- White and off-white backgrounds
+- Pale-mint surfaces
+- Small warm-gold accents
+- Large rounded cards
+- Subtle shadows
+- Friendly rounded typography
+- Mature enough for college students
+- Light and dark themes
+- English and Filipino interface languages
+- Initials avatars only
+- No human profile pictures
+
+If no final Ci image assets are present, create a clean temporary mascot component or placeholder asset structure. Clearly label it as replaceable. Do not download copyrighted mascot artwork.
+
+# Locked technology stack
+
+Use:
+
+- Ionic Vue
+- Vue 3 Composition API
+- TypeScript
+- Vite
+- Pinia
+- Ionic Router
+- SCSS
+- VeeValidate
+- Zod
+- Vue I18n
+- Supabase JavaScript client
+- PostgreSQL through Supabase
+- Supabase Auth
+- Supabase Storage
+- Supabase Realtime
+- Supabase Edge Functions
+- PostgreSQL Row Level Security
+- Standard Web Push with VAPID
+- Vite PWA integration
+- Playwright for end-to-end tests
+- Client-side PDF generation
+- Client-side Excel generation
+- Vercel hosting
+- Private GitHub repository eventually
+
+Choose maintained libraries compatible with the current Ionic Vue and Vue ecosystem.
+
+For PDF and Excel generation, select appropriate maintained client-side libraries and document the decision.
+
+Do not add:
+
+- Laravel
+- MySQL
+- Redis
+- Firebase
+- OneSignal
+- Sentry
+- Tailwind CSS
+- A separate Node/Express backend
+- Native-only Android or iOS dependencies unless required for normal PWA operation
+
+# Initial project setup
+
+Create an Ionic Vue project in the current directory without creating an unnecessary nested project folder.
+
+Configure:
+
+- TypeScript strict mode
+- ESLint
+- Prettier
+- SCSS
+- Pinia
+- Vue I18n
+- Ionic Router
+- Supabase client
+- Vite PWA
+- Playwright
+- Environment validation
+- Path aliases
+- Production build scripts
+- Type-check scripts
+- Lint scripts
+- End-to-end test scripts
+
+Create at minimum:
+
+- `README.md`
+- `.env.example`
+- `.gitignore`
+- `docs/BUILD_STATUS.md`
+- `docs/DECISIONS.md`
+- `docs/ARCHITECTURE.md`
+- `docs/SETUP.md`
+- `docs/DEPLOYMENT.md`
+- `docs/SECURITY.md`
+- `docs/TESTING.md`
+- `supabase/config.toml`
+- `supabase/migrations/`
+- `supabase/functions/`
+- `tests/e2e/`
+
+The README should explain the project, stack, scripts, local setup and external-service requirements.
+
+# Recommended frontend organization
+
+Use a structure similar to:
+
+```text
+src/
+├── assets/
+│   ├── icons/
+│   ├── images/
+│   └── mascot/
+├── components/
+│   ├── common/
+│   ├── layout/
+│   ├── feed/
+│   ├── announcements/
+│   ├── discussions/
+│   ├── polls/
+│   ├── tasks/
+│   ├── groups/
+│   ├── attendance/
+│   ├── contributions/
+│   ├── members/
+│   ├── notifications/
+│   ├── calendar/
+│   └── reports/
+├── composables/
+├── config/
+├── constants/
+├── layouts/
+├── locales/
+│   ├── en.json
+│   └── fil.json
+├── router/
+├── schemas/
+├── services/
+│   ├── supabase/
+│   ├── auth/
+│   ├── storage/
+│   ├── notifications/
+│   ├── reports/
+│   └── modules/
+├── stores/
+├── styles/
+│   ├── tokens/
+│   ├── themes/
+│   ├── components/
+│   └── global.scss
+├── types/
+├── utils/
+├── views/
+└── workers/
+```
+
+Adjust this structure only when there is a clear technical reason.
+
+# Required Pinia stores
+
+Plan and implement stores for:
+
+- Authentication and current user
+- Permissions and officer role
+- User preferences
+- Theme
+- Language
+- Active academic term
+- Notifications and unread counts
+- Connectivity/offline state
+- PWA installation and updates
+
+Do not place every server record permanently in Pinia. Use stores primarily for shared application state and use services/composables for paginated server data.
+
+# Roles
+
+Implement these application roles:
+
+```text
+president
+vice_president
+secretary
+treasurer
+student
+```
+
+There is no visible developer or super-admin role inside the app.
+
+The President is the highest application role.
+
+The President role is assigned through a controlled developer/database process.
+
+The President assigns or removes:
+
+- Vice President
+- Secretary
+- Treasurer
+
+All role changes must be audited.
+
+# Permission requirements
+
+## President
+
+The President can:
+
+- Create, edit, schedule, pin, expire and archive announcements
+- Approve or reject student discussions
+- Moderate reported content
+- Import, create, edit, deactivate and reset student accounts
+- Assign non-President officer roles
+- Manage academic years, semesters and subjects
+- Manage tasks
+- Manage attendance
+- Approve old attendance changes
+- Manage contributions and payment statuses
+- Override groups
+- Export authorized reports
+- View full student numbers
+- View audit logs and internal analytics
+- Revoke sessions
+
+## Vice President
+
+The Vice President is the operational backup administrator.
+
+The Vice President receives the President’s operational permissions except:
+
+- Cannot assign or remove the President
+- Cannot transfer President ownership
+
+## Secretary
+
+The Secretary can:
+
+- Manage tasks
+- Manage attendance
+- Process attendance corrections
+- Manage academic years, semesters and subjects
+- Correct subject-group membership
+
+The Secretary cannot:
+
+- Publish official announcements
+- Manage accounts
+- Assign officer roles
+- Manage contributions unless also holding an authorized administrative role
+- View complete student numbers belonging to other students
+
+## Treasurer
+
+The Treasurer can:
+
+- Create contribution posts
+- Mark students Paid or Unpaid
+- View contribution rosters
+- Export contribution reports
+- Send contribution reminders
+
+The Treasurer cannot:
+
+- Manage attendance
+- Manage student accounts
+- Publish general official announcements
+- Assign officer roles
+- View complete student numbers
+
+## Student
+
+Students can:
+
+- View announcements
+- React and comment
+- Reply one level deep
+- Mention students and groups
+- Submit discussion posts for approval
+- Edit or delete their own posts and comments
+- Report content
+- Vote in polls
+- View assigned tasks
+- Change their own task completion before the deadline
+- Create subject groups
+- Manage membership in groups they created
+- View only their own attendance
+- Submit attendance corrections
+- View only their own contribution status
+- View anonymous class contribution totals
+- Manage preferences
+- Change password
+- Review active sessions
+
+# Authentication design
+
+Students log in with:
+
+- Username
+- Password
+
+Accounts are created through:
+
+- Excel/CSV import
+- Manual administrator entry
+
+Required student fields:
+
+- Full name
+- Username
+- Student number
+
+There are no profile pictures.
+
+Use initials avatars.
+
+Initial password:
+
+- The student number
+
+Changing the temporary password:
+
+- Recommended
+- Prompted during onboarding
+- Not mandatory
+
+Password resets:
+
+- President or Vice President resets the password to the student number
+- Audit every reset
+
+Failed-login protection:
+
+- Lock after five failed attempts
+- Lockout duration: 15 minutes
+- Clear the count after successful login
+
+Sessions:
+
+- Stay signed in
+- Multiple devices allowed
+- Users can review and terminate sessions
+- Password reset, account deactivation or administrative revocation invalidates sessions
+
+Student-number privacy:
+
+- Student sees their own full number
+- President and Vice President see full numbers
+- Other users see masked numbers
+
+Supabase Auth normally uses email or phone credentials. The visible login must remain username-based.
+
+Use a documented internal identity strategy, such as a deterministic internal email derived from normalized username, while ensuring:
+
+- Students never need to know the internal email
+- Usernames remain unique
+- Username normalization is consistent
+- No real email verification is required
+- Administrative user creation happens securely
+- Service-role credentials never reach the frontend
+
+If the chosen username strategy has a security problem, document and implement the safest compatible approach without changing the visible username login requirement.
+
+# First-login onboarding
+
+Implement:
+
+1. Privacy Notice acceptance
+2. Community Guidelines acceptance
+3. Optional password change
+4. Language selection
+5. Theme selection
+6. Notification preferences
+7. Short Ci-guided feature tour
+8. Mobile PWA installation requirement
+
+Store policy version and acceptance timestamp.
+
+# Main navigation
+
+Use five bottom-navigation destinations:
+
+1. Home
+2. Announcements
+3. Tasks
+4. Members
+5. Profile
+
+Do not add a sixth bottom-navigation item.
+
+Access secondary modules through dashboard shortcuts, page actions or nested routes:
+
+- Attendance
+- Contributions
+- Calendar
+- Notifications
+- Groups
+- Reports
+- Search
+- Administration
+- Moderation
+- Audit logs
+- Analytics
+- Settings
+
+# Required pages
+
+Create the route structure and initial page shells for:
+
+- Splash
+- Login
+- First-login onboarding
+- PWA installation guide
+- Home feed
+- Announcement list
+- Announcement detail
+- Create/edit announcement
+- Student discussion submission
+- Pending discussion review
+- Poll detail
+- Poll results
+- Tasks
+- Task detail
+- Create/edit task
+- Attendance
+- Attendance session
+- Attendance correction
+- Contributions
+- Contribution detail
+- Create contribution
+- Payment-status manager
+- Calendar
+- Groups
+- Group detail
+- Create/edit group
+- Members
+- Account administration
+- Academic terms
+- Subjects
+- Notifications
+- Global search
+- Attendance reports
+- Contribution reports
+- Moderation reports
+- Audit logs
+- Internal analytics
+- Profile
+- Preferences
+- Notification settings
+- Active sessions
+- Report a Problem
+- Privacy Notice
+- Community Guidelines
+
+Do not leave every page as a generic blank placeholder. Build reusable layout primitives and implement the foundation of each route.
+
+# Announcements and feed
+
+The Home dashboard is announcement-first.
+
+Use a Facebook-inspired content hierarchy without copying Facebook branding.
+
+Feed priority:
+
+1. Pinned official announcements
+2. Other active official announcements
+3. Approved student discussions
+
+Official announcements can be:
+
+- Published immediately
+- Scheduled
+- Pinned
+- Given an optional expiration date
+- Archived
+
+Expired announcements move to archive.
+
+Student discussions:
+
+- Require President or Vice President approval
+- Cannot be pinned
+- Cannot outrank official announcements
+- Notify the author when approved or rejected
+- Store reviewer, decision, reason and timestamp
+
+# Editor and content safety
+
+Use limited rich text.
+
+Allow:
+
+- Bold
+- Italic
+- Bulleted lists
+- Numbered lists
+- Safe links
+
+Block or sanitize:
+
+- Arbitrary HTML
+- Scripts
+- Iframes
+- Embedded external media
+- Dangerous URL schemes
+
+Sanitize before storing and before rendering where appropriate.
+
+# Reactions, comments and mentions
+
+Reactions:
+
+- Like
+- Love
+- Laugh
+- Surprised
+- Sad
+- Support
+
+Allow one active reaction per user per item.
+
+Allow changing the selected reaction.
+
+Comments support one reply level.
+
+Support:
+
+- `@student`
+- `@group`
+
+Mentions generate notifications.
+
+Users can edit and delete their own content.
+
+Edited content displays an Edited label.
+
+Deletion remains recorded in audit logs.
+
+# Moderation
+
+Students can report posts and comments.
+
+President and Vice President review reports.
+
+Require a reason when:
+
+- Hiding content
+- Removing content
+- Rejecting reports
+- Taking another moderation action
+
+Record:
+
+- Reporter
+- Target
+- Moderator
+- Decision
+- Reason
+- Timestamp
+
+# Polls
+
+Poll creators configure:
+
+- Question
+- Options
+- Single or multiple choice
+- Anonymous or named voting
+- Deadline
+- Result visibility
+- Whether votes may be changed
+
+Users must see whether a poll is anonymous before voting.
+
+Prevent duplicate invalid votes.
+
+# Tasks
+
+Task managers:
+
+- President
+- Vice President
+- Secretary
+
+Targets:
+
+- Entire class
+- Subject group
+- Individual student
+
+Task fields:
+
+- Title
+- Description
+- Subject
+- Target type
+- Target ID
+- Creator
+- Deadline
+- Attachments
+- Status
+- Reminder configuration
+
+Students can mark their task Complete or Incomplete until the deadline.
+
+After the deadline:
+
+- Completion is locked
+- Incomplete task becomes Overdue
+
+C-LEAD is not an assignment-submission platform.
+
+# Groups
+
+Groups are subject-based.
+
+Students may:
+
+- Create groups
+- Belong to multiple groups
+- Add members from the Section C roster
+- Manage the group name, subject and membership for groups they created
+
+Officers may:
+
+- Correct membership
+- Archive groups
+- Remove inappropriate groups
+
+Group creators cannot erase historical records or bypass moderation.
+
+# Attendance
+
+Attendance session types:
+
+- Subject
+- Meeting
+- Seminar
+- Event
+- Other section activity
+
+Authorized markers:
+
+- President
+- Vice President
+- Secretary
+
+Statuses:
+
+- Present
+- Late
+- Absent
+- Excused
+
+Privacy:
+
+- Student sees only their own records
+- Authorized officers see the class roster
+
+Correction flow:
+
+- Student selects record
+- Provides reason
+- Officer reviews
+- Approves or rejects
+- Student receives notification
+- Decision is audited
+
+Edit window:
+
+- Direct officer editing allowed for seven days
+- After seven days, require a reason and President or Vice President approval
+
+# Contributions
+
+Contribution post fields:
+
+- Title
+- Required amount
+- Purpose
+- Deadline
+- Creator
+- Status
+
+Student payment status:
+
+- Paid
+- Unpaid
+
+Do not implement Partial.
+
+Authorized editors:
+
+- Treasurer
+- President
+- Vice President
+
+Students cannot mark themselves paid.
+
+Students see:
+
+- Their own payment status
+- Required amount
+- Anonymous target, collected and outstanding totals
+
+Students cannot see classmates’ individual payment statuses.
+
+No receipt or proof upload.
+
+# Academic organization
+
+Use:
+
+- Academic year
+- Semester
+- Subject
+
+President, Vice President and Secretary manage these records.
+
+Archive completed terms.
+
+Archived records remain preserved and read-only by default.
+
+Accounts continue across terms.
+
+This application is for Section C only.
+
+Expected users: up to 50.
+
+# Calendar and reminders
+
+Unified calendar:
+
+- Monthly view
+- Agenda view
+
+Include:
+
+- Tasks
+- Events
+- Poll deadlines
+- Contribution deadlines
+- Scheduled announcements
+
+Automatic reminders:
+
+- One day before
+- One hour before
+
+# Notifications
+
+Provide:
+
+- In-app notification center
+- Standard Web Push
+
+Do not use Firebase or OneSignal.
+
+Notification categories:
+
+- Announcements
+- Polls
+- Contributions
+- Discussions
+- Comments
+- Tasks
+- Attendance
+- Attendance-correction decisions
+- Group changes
+- Reactions
+- Mentions
+- Discussion-approval decisions
+
+Each student can enable or disable categories.
+
+Critical security notifications remain visible in-app.
+
+Implement:
+
+- PushSubscription storage
+- VAPID configuration
+- Secure Edge Function delivery
+- Invalid-subscription cleanup
+- Deep links from notifications
+- Preference checks
+- Device/session association
+
+# Members and profiles
+
+No profile pictures.
+
+Use initials avatars.
+
+Member page:
+
+- Search
+- Officer section
+- Student section
+- Role labels
+- Active/deactivated status for authorized viewers
+
+Student-editable profile data:
+
+- Password
+- Theme
+- Language
+- Notification preferences
+
+Only President and Vice President edit:
+
+- Official name
+- Username
+- Student number
+- Account status
+
+# Attachments
+
+Use private Supabase Storage.
+
+Do not use permanent public URLs.
+
+Generate temporary signed links after permission checks.
+
+Limits:
+
+- Maximum five files per supported item
+- Images: maximum 5 MB each
+- Documents: maximum 10 MB each
+
+Allowed:
+
+- JPG
+- PNG
+- WebP
+- PDF
+- DOCX
+- PPTX
+- XLSX
+
+Rejected:
+
+- Video
+- Executables
+- Scripts
+- Archives
+- Unsupported MIME types
+- Extension/MIME mismatches
+
+When parent content is permanently deleted, delete its attachments immediately.
+
+Show an explicit irreversible-action warning.
+
+# Reports
+
+Export:
+
+- Attendance
+- Contributions
+
+Formats:
+
+- PDF
+- Excel
+
+Generate reports inside the PWA.
+
+Use authorized data only.
+
+Record exports in the audit log.
+
+Attendance filters:
+
+- Subject
+- Event
+- Student
+- Date range
+- Academic term
+
+Contribution report includes:
+
+- Full roster
+- Paid/Unpaid status
+- Required amount
+- Summary totals
+- Relevant dates
+- Generating officer
+
+# Search
+
+Global search covers accessible:
+
+- Posts
+- Tasks
+- Members
+- Groups
+
+Respect:
+
+- Role permissions
+- Section membership
+- Archived terms
+- Record visibility
+
+# Analytics
+
+Do not add third-party behavioral analytics.
+
+Implement basic internal statistics:
+
+- Active users
+- Announcement views
+- Poll participation
+- Task completion
+- Attendance summaries
+- Authorized contribution summaries
+
+# Audit logging
+
+Retain audit logs indefinitely.
+
+Audit:
+
+- Account creation/edit/deactivation
+- Password resets
+- Role changes
+- Announcement changes
+- Discussion approvals/rejections
+- Moderation
+- Attendance changes
+- Attendance-correction decisions
+- Contribution-status changes
+- Report exports
+- Subject and term changes
+- Group overrides
+- Session revocation
+- Other sensitive actions
+
+Store where appropriate:
+
+- Actor ID
+- Action
+- Target type
+- Target ID
+- Old values
+- New values
+- Reason
+- Timestamp
+- Metadata
+
+Ordinary users must not read or modify audit records.
+
+# PWA requirements
+
+Configure:
+
+- Web app manifest
+- Standalone display mode
+- App name and short name
+- Theme colors
+- Icons
+- Splash behavior
+- Service worker
+- Offline app shell
+- Update detection
+- Update prompt
+- Installation detection
+- Android installation guidance
+- iPhone Safari installation guidance
+- Mobile installation requirement
+- Desktop browser exception
+
+Cache safely:
+
+- App shell
+- Fonts
+- Icons
+- Ci illustrations
+- Locale files
+- Recently loaded announcements and tasks
+- Current user’s recent attendance summary where safe
+
+Do not cache sensitive administrative datasets.
+
+Offline mode is read-only.
+
+Do not queue offline writes.
+
+# Update behavior
+
+When a new deployment is available:
+
+- Show “A new version of C-LEAD is available.”
+- Provide Update and Later actions.
+- Do not reload automatically while the user is completing a form.
+- Update and reload only after confirmation.
+
+# Accessibility
+
+Implement:
+
+- Sufficient contrast
+- Light/dark contrast testing
+- Scalable text
+- Semantic labels
+- Keyboard navigation
+- Visible focus indicators
+- Screen-reader labels
+- Reduced-motion support
+- Status text/icons in addition to color
+- Accessible validation errors
+- Accessible dialogs
+- Mobile-friendly touch targets
+
+# Problem reporting and logs
+
+Do not add Sentry.
+
+Use:
+
+- Vercel logs
+- Supabase logs
+- In-app Report a Problem form
+
+Report fields:
+
+- Description
+- Current route
+- App version
+- Device/browser type
+- Timestamp
+- User ID where appropriate
+
+Never capture:
+
+- Passwords
+- Student numbers
+- Authentication tokens
+- Sensitive form contents
+- Full attendance records
+- Contribution rosters
+
+Do not support screenshot attachments for problem reports.
+
+# Data retention
+
+At academic-year end:
+
+- Archive records
+- Keep accounts
+
+When a student leaves:
+
+- Deactivate account
+- Preserve history
+
+No external backup system will be built.
+
+This risk is accepted.
+
+Use:
+
+- Strong authorization
+- Confirmation dialogs
+- Soft deletion for database records where appropriate
+- Audit logs
+- Immediate attachment deletion only after explicit confirmation
+
+# Themes and localization
+
+Create SCSS tokens for:
+
+- Brand colors
+- Semantic colors
+- Typography
+- Spacing
+- Radius
+- Elevation
+- Motion
+- Light theme
+- Dark theme
+
+Create English and Filipino locale files from the beginning.
+
+Do not hardcode interface strings throughout components.
+
+# Responsive behavior
+
+Mobile-first.
+
+Mobile:
+
+- Bottom navigation
+- Installation required
+- Standalone app behavior
+
+Desktop:
+
+- Responsive wider layout
+- Normal browser access allowed
+- Installation not required
+- Administration, imports and reports should be convenient on desktop
+
+# Deployment configuration
+
+Prepare for:
+
+- Vercel Hobby
+- Free vercel.app address
+- Automatic production deployment from main
+- HTTPS
+- Correct SPA route rewrites
+- PWA caching
+- Supabase allowed origins
+- Supabase authentication redirect URLs
+
+Create a valid `vercel.json` only if required.
+
+Do not deploy without authorization.
+
+# Known accepted risks
+
+Do not silently reverse these decisions:
+
+- One Supabase project for development and production
+- No external backups
+- No Sentry
+- Vercel and Supabase logs only
+- Every main push deploys to production
+- Client-side report generation
+- Temporary password change is optional
+- Attachments are deleted immediately with deleted content
+- Mobile PWA installation is required
+- Desktop installation is not required
+
+Build safeguards around them.
+
+# Development milestones
+
+Implement in this order.
+
+## Milestone 0: Inspect and plan
+
+- Confirm the directory state.
+- Create `docs/BUILD_STATUS.md`.
+- Create `docs/DECISIONS.md`.
+- Write a concise implementation plan.
+- Do not stop after planning.
+
+## Milestone 1: Scaffold
+
+- Create Ionic Vue TypeScript project in the current directory.
+- Install and configure approved dependencies.
+- Add linting, formatting, type checking and Playwright.
+- Configure SCSS, Pinia, i18n and routing.
+- Configure PWA support.
+- Create environment validation.
+- Verify the initial build.
+
+## Milestone 2: Design foundation
+
+- Create brand tokens.
+- Implement light and dark themes.
+- Create typography and spacing system.
+- Create responsive app shell.
+- Create mobile bottom navigation.
+- Create initials-avatar component.
+- Create Ci placeholder/asset structure.
+- Implement language switching.
+- Add accessible common components.
+
+## Milestone 3: Supabase foundation
+
+Before writing migrations, create:
+
+- Architecture documentation
+- ERD
+- Permission matrix
+- Table inventory
+- RLS plan
+
+Then create versioned SQL migrations.
+
+Suggested domain areas include:
+
+- Profiles
+- User roles
+- Account status
+- Sessions/devices where application-level tracking is needed
+- Policy acceptances
+- Academic years
+- Semesters
+- Subjects
+- Posts
+- Announcement metadata
+- Discussion approvals
+- Post attachments
+- Reactions
+- Comments
+- Mentions
+- Polls
+- Poll options
+- Poll responses
+- Tasks
+- Task assignments
+- Task completions
+- Groups
+- Group members
+- Attendance sessions
+- Attendance records
+- Attendance corrections
+- Contributions
+- Contribution statuses
+- Notifications
+- Notification preferences
+- Push subscriptions
+- Reports/exports audit
+- Content reports
+- Audit logs
+- Problem reports
+- Announcement views or internal analytics
+
+Normalize the schema appropriately.
+
+Do not blindly create a table for every noun if a cleaner relational design exists.
+
+Use enums or lookup tables carefully.
+
+Add:
+
+- Foreign keys
+- Unique constraints
+- Check constraints
+- Indexes
+- Created/updated timestamps
+- Soft-delete fields where appropriate
+- Triggers
+- Audit helpers
+- RLS policies
+
+## Milestone 4: Authentication and onboarding
+
+Implement:
+
+- Username login
+- Session restoration
+- Failed-login protection
+- Lockout UI
+- First-login detection
+- Privacy acceptance
+- Community Guidelines acceptance
+- Optional password change
+- Preferences
+- Feature tour
+- PWA installation requirement
+- Route guards
+- Role guards
+- Account deactivation behavior
+
+## Milestone 5: Accounts and administration
+
+Implement:
+
+- Member roster
+- Initials avatars
+- Manual account creation
+- Excel/CSV import with row validation and preview
+- Duplicate detection
+- Account editing
+- Account deactivation/reactivation
+- Password reset
+- Officer assignment
+- Academic year, semester and subject management
+
+Never expose the service-role key to the frontend.
+
+Use a secure Edge Function for administrative Auth operations.
+
+## Milestone 6: Feed and communication
+
+Implement:
+
+- Announcement feed
+- Scheduling
+- Pinning
+- Expiration
+- Archiving
+- Student discussion submission
+- Approval queue
+- Reactions
+- Comments and replies
+- Mentions
+- Moderation reports
+- Limited rich-text editor
+- Attachments
+- Signed links
+- Realtime updates
+
+## Milestone 7: Polls, tasks and groups
+
+Implement:
+
+- Configurable polls
+- Anonymous/named behavior
+- Single/multiple choice
+- Deadlines
+- Result visibility
+- Task creation and assignment
+- Completion tracking
+- Overdue behavior
+- Subject groups
+- Group membership
+- Officer overrides
+
+## Milestone 8: Attendance
+
+Implement:
+
+- Attendance sessions
+- Status marking
+- Student privacy
+- Student attendance history
+- Attendance summaries
+- Correction requests
+- Seven-day editing rule
+- Old-record approval workflow
+- Audit logging
+
+## Milestone 9: Contributions
+
+Implement:
+
+- Contribution posts
+- Paid/Unpaid records
+- Treasurer workflow
+- Student self-view
+- Anonymous totals
+- Reminders
+- Contribution reports
+- Audit logging
+
+## Milestone 10: Calendar and notifications
+
+Implement:
+
+- Unified calendar
+- Agenda view
+- One-day reminders
+- One-hour reminders
+- In-app notifications
+- Notification preferences
+- Standard Web Push
+- Deep links
+- Invalid-subscription cleanup
+
+## Milestone 11: Reports, search and analytics
+
+Implement:
+
+- Attendance PDF export
+- Attendance Excel export
+- Contribution PDF export
+- Contribution Excel export
+- Global search
+- Basic internal statistics
+- Export audit entries
+
+## Milestone 12: Offline and production polish
+
+Implement:
+
+- Safe caching
+- Offline indicator
+- Read-only cached content
+- Update prompt
+- Performance optimization
+- Empty states
+- Loading states
+- Error states
+- Accessibility pass
+- Filipino translation completion
+- Dark-theme completion
+- Responsive desktop pass
+
+## Milestone 13: Testing
+
+Create Playwright coverage for:
+
+- Login
+- Lockout
+- Onboarding
+- Role guards
+- Announcements
+- Discussion approval
+- Polls
+- Tasks
+- Groups
+- Attendance
+- Attendance corrections
+- Contributions
+- Reports
+- Storage access
+- Notifications where testable
+- Offline shell
+- Update prompt
+- Language and theme
+- Deactivation
+- Audit creation
+
+# Pilot and launch requirements
+
+Development target:
+
+- 8–10 weeks
+
+Pilot:
+
+- All officers
+- Five ordinary students
+- Mix of Android and iPhone
+- One week
+
+Production launch requires:
+
+- No unresolved critical issues
+- Correct role permissions
+- No known data-loss defect
+- Successful Android installation
+- Successful iPhone installation
+- Passing critical workflows
+- Verified attendance privacy
+- Verified contribution privacy
+- Working account import
+- Working password reset
+- Working notifications
+- Verified PDF and Excel exports
+
+# What to do now
+
+Begin immediately.
+
+For this run:
+
+1. Inspect the empty directory.
+2. Create the documentation and progress tracker.
+3. Scaffold the Ionic Vue TypeScript application in the current directory.
+4. Install and configure the approved foundational dependencies.
+5. Establish the folder architecture.
+6. Implement the design-system foundation.
+7. Configure routing, Pinia, i18n and the PWA shell.
+8. Create the architecture, ERD and permission documentation.
+9. Create the first versioned Supabase migrations and RLS foundation.
+10. Implement as much of authentication and onboarding as can be done safely without real credentials.
+11. Create `.env.example`.
+12. Run linting, type checking, build and available tests.
+13. Fix all errors.
+14. Update `docs/BUILD_STATUS.md` with:
+    - Completed work
+    - Verification results
+    - Remaining milestones
+    - External credentials or setup still required
+15. End with a concise implementation summary and exact commands for the next development session.
+
+Do not merely output code snippets in chat. Create and modify the actual project files in the current working directory.

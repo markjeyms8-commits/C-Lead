@@ -1,0 +1,68 @@
+{
+  "name": "c-lead",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "typecheck": "vue-tsc --noEmit",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:e2e": "npm run typecheck && node scripts/test-shell.mjs",
+    "test:e2e:auth": "npm run typecheck && node scripts/test-auth.mjs",
+    "test:integration:hosted": "node scripts/verify-hosted-auth.mjs",
+    "test:hosted-safety": "node --test tests/hosted-safety.test.mjs",
+    "bootstrap:hosted": "node scripts/bootstrap-hosted.mjs",
+    "check:edge": "npx --yes deno check --config supabase/functions/deno.json supabase/functions/username-login/index.ts supabase/functions/change-password/index.ts supabase/functions/admin-accounts/index.ts supabase/functions/attachments/index.ts supabase/functions/dispatch-notifications/index.ts",
+    "test:edge": "npx --yes deno test --config supabase/functions/deno.json --allow-env supabase/functions",
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm run build && npm test && npm run check:edge && npm run test:edge && npm run test:hosted-safety && npm run test:e2e && npm run test:e2e:auth"
+  },
+  "dependencies": {
+    "@ionic/vue": "^9.0.11",
+    "@ionic/vue-router": "^9.0.11",
+    "@supabase/supabase-js": "^2.119.0",
+    "ionicons": "^8.1.0",
+    "jspdf": "^4.2.1",
+    "pinia": "^4.1.0",
+    "read-excel-file": "^9.3.15",
+    "vee-validate": "^4.15.1",
+    "vue": "^3.5.45",
+    "vue-i18n": "^11.4.19",
+    "vue-router": "^4.6.4",
+    "write-excel-file": "^4.1.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@electric-sql/pglite": "^0.5.16",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.65.0",
+    "@types/node": "^26.6.6",
+    "@vitejs/plugin-vue": "^6.0.11",
+    "eslint": "^10.14.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-vue": "^10.12.1",
+    "prettier": "^3.10.1",
+    "sass": "^1.108.2",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.2",
+    "vite": "^8.3.8",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^5.1.0",
+    "vue-tsc": "^3.3.14",
+    "workbox-core": "^7.4.1",
+    "workbox-precaching": "^7.4.1",
+    "workbox-routing": "^7.4.1"
+  },
+  "overrides": {
+    "minimatch@>=7": "^11.0.8",
+    "glob@>=9": "^14.0.6"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  }
+}

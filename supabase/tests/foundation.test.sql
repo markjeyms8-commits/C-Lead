@@ -1,0 +1,15 @@
+begin;
+create extension if not exists pgtap with schema extensions;
+select plan(10);
+select ok((select relrowsecurity from pg_class where oid='public.profiles'::regclass),'Roster enables RLS');
+select ok((select relrowsecurity from pg_class where oid='public.app_sessions'::regclass),'Sessions enable RLS');
+select ok((select relrowsecurity from pg_class where oid='public.audit_logs'::regclass),'Audit enables RLS');
+select ok(not has_table_privilege('authenticated','private.identities','SELECT'),'Private identity access denied');
+select ok(not has_table_privilege('authenticated','public.profiles','UPDATE'),'Client cannot edit roles');
+select ok(not has_table_privilege('authenticated','public.audit_logs','INSERT'),'Client cannot forge audits');
+select ok(not has_function_privilege('authenticated','public.begin_login(text)','EXECUTE'),'Login counter is server-only');
+select ok(not has_function_privilege('anon','public.complete_onboarding(text,text,jsonb,boolean,boolean,boolean)','EXECUTE'),'Anonymous onboarding denied');
+select ok(has_function_privilege('authenticated','public.revoke_current_session()','EXECUTE'),'Own-session revocation is available');
+select ok(not (select public from storage.buckets where id='attachments'),'Attachment bucket is private');
+select * from finish();
+rollback;
