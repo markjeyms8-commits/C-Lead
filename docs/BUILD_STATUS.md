@@ -117,3 +117,8 @@ Run `npm run verify` sequentially. When approved pre-production credentials beco
 - The user confirmed project `lbdqeqpmfvjnrokaegps` is empty pre-production with no real student accounts/data. Its reference matches the frontend configuration and the CLI link. Supabase labels the main branch production; this is not a claim of production readiness.
 - An exact-reference-guarded dry run listed migrations 001–017. The subsequent additive push successfully applied all 17 migrations, with no seeds, reset, schema recreation or student import.
 - This supersedes the earlier no-hosted-mutation status for database installation only. Edge deployment, server-secret configuration, first-President provisioning and live integration verification remain pending. No frontend deployment occurred.
+
+## Vercel build compatibility — November 17, 2026
+
+- The first Vercel build rejected automatically injected `VITE_VERCEL_GIT_REPO_ID` metadata. Vite now exposes only the three documented application environment prefixes; Vercel metadata is accepted at build time but excluded from browser environment values. Other unapproved Vite variables and server credentials remain rejected.
+- Added a regression test for Vercel metadata exclusion and preservation of the public Supabase key. Formatting, ESLint, all four environment regression tests, TypeScript and production build passed with injected Vercel metadata. A scan confirmed the metadata marker and repository-ID variable are absent from dist. Hosted authentication setup remains pending.

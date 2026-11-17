@@ -1,12 +1,16 @@
 import { defineConfig, loadEnv } from 'vite';
 import process from 'node:process';
-import { assertPublicEnvironment } from './src/config/publicEnvironment.ts';
+import {
+  assertPublicEnvironment,
+  publicEnvironmentNames,
+} from './src/config/publicEnvironment.ts';
 import vue from '@vitejs/plugin-vue';
 import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath, URL } from 'node:url';
 export default defineConfig(({ mode }) => {
   assertPublicEnvironment(loadEnv(mode, process.cwd(), 'VITE_'));
   return {
+    envPrefix: publicEnvironmentNames,
     plugins: [
       vue(),
       VitePWA({
