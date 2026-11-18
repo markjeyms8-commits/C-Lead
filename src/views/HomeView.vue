@@ -1,43 +1,21 @@
 <template>
   <AppLayout :title="t('nav.home')"
-    ><section class="page-heading">
+    ><section class="home-masthead">
       <div>
-        <p class="eyebrow">{{ t('home.eyebrow') }}</p>
-        <h1>{{ t('home.greeting') }}<span class="wave"> ✦</span></h1>
+        <p>{{ t('brand.section') }}</p>
+        <h1>{{ t('home.greeting') }}</h1>
         <p>{{ t('home.subtitle') }}</p>
       </div>
-      <RouterLink to="/calendar" class="text-link"
-        >{{ t('home.calendar') }} ↗</RouterLink
-      >
+      <CiMascot />
     </section>
-    <section class="welcome-card">
+    <section class="welcome-card class-summary">
       <div>
         <span class="pill">{{ t('brand.section') }}</span>
-        <h2>{{ t('home.hero') }}</h2>
-        <p>{{ t('home.heroBody') }}</p>
-        <RouterLink to="/announcements" class="button"
-          >{{ t('home.catchUp') }} <span>→</span></RouterLink
-        >
       </div>
-      <div class="mascot-scene">
-        <span class="sparkle one">✦</span><span class="sparkle two">✧</span
-        ><CiMascot /><span class="ci-label">{{ t('home.ciHello') }}</span>
-      </div>
-    </section>
-    <div class="shortcut-grid">
-      <RouterLink
-        v-for="item in shortcuts"
-        :key="item.path"
-        :to="item.path"
-        class="shortcut"
-        ><span class="shortcut-icon"
-          ><IonIcon :icon="item.icon" aria-hidden="true" /></span
-        ><span
-          ><strong>{{ t(item.title) }}</strong
-          ><small>{{ t(item.caption) }}</small></span
-        ><span class="arrow">↗</span></RouterLink
+      <RouterLink to="/announcements" class="button"
+        >{{ t('viewAll') }} <span aria-hidden="true">→</span></RouterLink
       >
-    </div>
+    </section>
     <div class="dashboard-columns">
       <section>
         <div class="section-heading">
@@ -80,6 +58,21 @@
         </template>
       </section>
       <aside class="right-column">
+        <div class="shortcut-grid">
+          <RouterLink
+            v-for="item in shortcuts"
+            :key="item.path"
+            :to="item.path"
+            class="shortcut"
+            ><span class="shortcut-icon"
+              ><IonIcon :icon="item.icon" aria-hidden="true" /></span
+            ><span
+              ><strong>{{ t(item.title) }}</strong
+              ><small>{{ t(item.caption) }}</small></span
+            ><span class="arrow">↗</span></RouterLink
+          >
+        </div>
+
         <section class="card">
           <div class="section-heading">
             <h2>{{ t('home.upNext') }}</h2>

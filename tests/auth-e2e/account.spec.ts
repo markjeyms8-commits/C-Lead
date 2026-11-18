@@ -1778,3 +1778,85 @@ test('report, search, calendar and problem pages support responsive themes and a
     }
   }
 });
+
+test('agreed classroom screens remain accessible on mobile in both themes', async ({
+  page,
+}, info) => {
+  test.setTimeout(240000);
+  const { default: AxeBuilder } = await import('@axe-core/playwright');
+  await fixture(page, true, 'president');
+  await communicationFixture(page);
+  await page.route('https://auth-fixture.invalid/rest/v1/**', (route) => {
+    const path = new URL(route.request().url()).pathname;
+    const send = (data: unknown) =>
+      route.fulfill({
+        contentType: 'application/json',
+        body: JSON.stringify(data),
+      });
+    if (path.endsWith('/rpc/account_roster'))
+      return send([
+        {
+          id: userId,
+          full_name: 'Test Student',
+          username: 'test_student',
+          student_number: 'TEST-0001',
+          role: 'president',
+          active: true,
+        },
+      ]);
+    if (
+      [
+        '/tasks',
+        '/task_assignments',
+        '/attendance_sessions',
+        '/notifications',
+        '/rpc/calendar_feed',
+      ].some((s) => path.endsWith(s))
+    )
+      return send([]);
+    return route.fallback();
+  });
+  await signIn(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const path of [
+    '/home',
+    '/announcements',
+    '/tasks',
+    '/members',
+    '/attendance',
+    '/profile',
+    '/notifications',
+    '/announcements/new',
+  ]) {
+    await page.goto(path);
+    await expect(page.locator('main h1')).toBeVisible();
+    await expect(page.locator('main img.ci')).toBeVisible();
+    expect(
+      await page
+        .locator('main img.ci')
+        .evaluate((image) => (image as HTMLImageElement).naturalWidth),
+    ).toBeGreaterThan(0);
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(
+        (theme) => (document.documentElement.dataset.theme = theme),
+        theme,
+      );
+      expect(
+        (
+          await new AxeBuilder({ page })
+            .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
+            .analyze()
+        ).violations,
+      ).toEqual([]);
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await page.screenshot({
+        path: info.outputPath(path.replaceAll('/', '-') + '-' + theme + '.png'),
+        fullPage: true,
+      });
+    }
+  }
+});

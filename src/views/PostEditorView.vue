@@ -1,7 +1,7 @@
 <template>
   <AppLayout :title="t('feed.editor')"
     ><section v-if="route.path === viewPath" class="card narrow">
-      <h1>{{ t('feed.editor') }}</h1>
+      <PageHero :title="t('feed.editor')" />
       <p v-if="loading" role="status">{{ t('account.loading') }}</p>
       <p v-if="error" role="alert">{{ t('feed.error') }}</p>
       <button v-if="error" :disabled="isSubmitting" @click="load">
@@ -81,6 +81,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { onIonViewWillEnter } from '@ionic/vue';
 import { useI18n } from 'vue-i18n';
 import { useForm } from 'vee-validate';
+import PageHero from '@/components/common/PageHero.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import RichEditor from '@/components/feed/RichEditor.vue';
 import {

@@ -1,16 +1,21 @@
 <template>
   <AppLayout :title="t('tasks.title')"
     ><section v-if="route.path === viewPath" class="card">
-      <h1>{{ t('tasks.title') }}</h1>
+      <PageHero :title="t('tasks.title')" />
       <p v-if="loading" role="status">{{ t('account.loading') }}</p>
       <p v-if="error" role="alert">{{ t('feed.error') }}</p>
       <button v-if="error" @click="load">{{ t('account.retry') }}</button>
       <p v-if="success" role="status">{{ t('feed.saved') }}</p>
-      <RouterLink to="/tasks">{{ t('tasks.list') }}</RouterLink><RouterLink
-        v-if="manager && !editing"
-        to="/tasks/new"
-        >{{ t('tasks.create') }}</RouterLink
-      >
+      <div class="task-actions">
+        <RouterLink to="/tasks" class="button secondary">{{
+          t('tasks.list')
+        }}</RouterLink><RouterLink
+          v-if="manager && !editing"
+          to="/tasks/new"
+          class="button"
+          >{{ t('tasks.create') }}</RouterLink
+        >
+      </div>
       <form v-if="editing && !loading" @submit="submit">
         <label :for="'task-title-' + formId">{{
           t('feed.postTitle')
@@ -155,13 +160,17 @@
           <option :value="true">{{ t('feed.archive') }}</option>
         </select>
         <p v-if="!loading && !rows.length">{{ t('tasks.empty') }}</p>
-        <article v-for="entry in rows" :key="entry.id">
+        <article v-for="entry in rows" :key="entry.id" class="task-card">
+          <span class="pill">{{ t(`tasks.${entry.status}`) }}</span>
           <h2>
             <RouterLink :to="`/tasks/${entry.id}`">{{
               entry.title
             }}</RouterLink>
           </h2>
-          <p>{{ dateManila(entry.deadline, locale) }}</p>
+          <p>
+            {{ t('tasks.deadline') }}: {{ dateManila(entry.deadline, locale) }}
+          </p>
+          <span class="pill">{{ t(`tasks.${entry.target_type}`) }}</span>
         </article>
         <button :disabled="page === 0 || loading" @click="page--">
           {{ t('feed.previous') }}</button><button
@@ -186,6 +195,7 @@ import {
 import { useI18n } from 'vue-i18n';
 import { useForm } from 'vee-validate';
 import { z } from 'zod';
+import PageHero from '@/components/common/PageHero.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import ReasonForm from '@/components/feed/ReasonForm.vue';
 import AttachmentsPanel from '@/components/feed/AttachmentsPanel.vue';

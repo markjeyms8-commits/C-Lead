@@ -122,3 +122,18 @@ Run `npm run verify` sequentially. When approved pre-production credentials beco
 
 - The first Vercel build rejected automatically injected `VITE_VERCEL_GIT_REPO_ID` metadata. Vite now exposes only the three documented application environment prefixes; Vercel metadata is accepted at build time but excluded from browser environment values. Other unapproved Vite variables and server credentials remain rejected.
 - Added a regression test for Vercel metadata exclusion and preservation of the public Supabase key. Formatting, ESLint, all four environment regression tests, TypeScript and production build passed with injected Vercel metadata. A scan confirmed the metadata marker and repository-ID variable are absent from dist. Hosted authentication setup remains pending.
+
+## UX visual hierarchy — November 18, 2026
+
+- Strengthened primary/secondary action styling, member administration and task/publishing creation links, headings, readable shortcut labels, underlined action links, selected navigation/filter states, and status/error callouts. Preserved existing translations, role guards, light/dark tokens and reduced-motion behavior.
+- Added keyboard-focus, minimum touch-target and horizontal-overflow checks to the existing light/dark accessibility test. Reviewed desktop light and mobile dark screenshots.
+- Formatting, ESLint, TypeScript and production build passed. Shell Playwright: 19 passed, one existing mobile duplicate service-worker test skipped. Authenticated Playwright with intercepted service fixtures: all 21 passed, including responsive theme/accessibility and report exports. Existing bundle-size and service-worker deprecation warnings remain.
+- No hosted database mutations, real student imports or deployment were performed for this UI change. Hosted integration remains a separate unpassed gate.
+
+## Agreed mockup implementation — November 18, 2026
+
+- Replaced the temporary geometric mascot with the reference-based illustrated Ci and retained the user's two approved UI boards in the repository. Added `UI_DESIGN.md` to make the intended design explicit.
+- Implemented a compact forest-green home header and feed-first layout, reusable pale-green mascot banners, grouped member cards with live counts, task cards, authorized attendance counts, profile identity/settings layout, comment avatars, pinned announcement strips and unread notification treatments. Existing forms, permissions, translations and services remain connected.
+- Added the image to service-worker precaching and verified offline image loading. Removed background-color fades after browser checks detected transient theme-switch contrast failures. No Supabase records or credentials were changed.
+- Credential-free checks: formatting, ESLint, TypeScript and production builds passed; 98 unit/PostgreSQL tests passed; 19 shell browser tests passed with one existing intentional skip; all 22 authenticated fixture tests passed, including eight redesigned screens in light/dark mobile layouts. Three timeouts under concurrent test load passed on isolated single-worker retries. Final visual review covered the home, member and profile layouts. Existing bundle-size and service-worker deprecation warnings remain.
+- The UI update is prepared for the user-authorized push to GitHub main. Environment files, credentials, real roster data and unrelated local bootstrap diagnostics are excluded. Hosted integration and mobile push delivery remain separate outstanding gates.

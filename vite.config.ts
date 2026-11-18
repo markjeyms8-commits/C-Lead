@@ -18,6 +18,9 @@ export default defineConfig(({ mode }) => {
         strategies: 'injectManifest',
         srcDir: 'src/workers',
         filename: 'sw.ts',
+        injectManifest: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
+        },
         manifest: {
           name: 'C-LEAD',
           short_name: 'C-LEAD',

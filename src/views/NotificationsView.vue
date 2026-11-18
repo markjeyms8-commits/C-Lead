@@ -1,7 +1,7 @@
 <template>
   <AppLayout :title="t('notices.title')"
     ><section class="card">
-      <h1>{{ t('notices.title') }}</h1>
+      <PageHero :title="t('notices.title')" />
       <RouterLink to="/settings/notifications">{{
         t('notices.preferences')
       }}</RouterLink>
@@ -36,7 +36,12 @@
         {{ t('notices.readAll') }}
       </button>
       <p v-if="!loading && !rows.length">{{ t('notices.empty') }}</p>
-      <article v-for="notice in rows" :key="notice.id" class="card">
+      <article
+        v-for="notice in rows"
+        :key="notice.id"
+        class="card notification-row"
+        :class="{ unread: !notice.read_at }"
+      >
         <h2>{{ notice.title }}</h2>
         <p>{{ notice.body }}</p>
         <p>
@@ -68,6 +73,7 @@ import { storeToRefs } from 'pinia';
 import { useRouter } from 'vue-router';
 import { onIonViewWillEnter, onIonViewDidLeave } from '@ionic/vue';
 import { useI18n } from 'vue-i18n';
+import PageHero from '@/components/common/PageHero.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useConnectivityStore } from '@/stores/app';
 import {

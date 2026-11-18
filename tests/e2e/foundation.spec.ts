@@ -11,6 +11,17 @@ test('home is accessible in light and dark themes', async ({
   for (const theme of ['light', 'dark']) {
     if (theme === 'dark')
       await page.getByRole('button', { name: 'Theme', exact: true }).click();
+    const primaryAction = page.locator('.welcome-card .button');
+    await primaryAction.focus();
+    await expect(primaryAction).toBeFocused();
+    const target = await primaryAction.boundingBox();
+    expect(target?.height).toBeGreaterThanOrEqual(44);
+    expect(target?.width).toBeGreaterThanOrEqual(44);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
     const result = await new AxeBuilder({ page })
       .withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
       .analyze();
@@ -38,6 +49,11 @@ test('production app shell reloads offline', async ({ page, context }) => {
   await expect(
     page.getByRole('status').filter({ hasText: 'You are offline.' }),
   ).toBeVisible();
+  const mascot = page.locator('.sidebar img.ci').first();
+  await expect(mascot).toHaveJSProperty('complete', true);
+  expect(
+    await mascot.evaluate((img) => (img as HTMLImageElement).naturalWidth),
+  ).toBeGreaterThan(0);
   await context.setOffline(false);
 });
 test('classroom shell and five mobile destinations', async ({

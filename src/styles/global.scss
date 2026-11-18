@@ -1,5 +1,6 @@
 @use './tokens/brand';
 @use './themes/dark';
+@use './classroom';
 fieldset {
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -66,7 +67,7 @@ button,
   background: var(--primary);
   color: var(--on-primary);
   padding: 13px 20px;
-  font-weight: 650;
+  font-weight: 750;
   cursor: pointer;
   display: inline-flex;
   gap: 16px;
@@ -78,7 +79,8 @@ button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
-button.secondary {
+button.secondary,
+.button.secondary {
   background: var(--mint);
   color: var(--primary);
 }
@@ -101,7 +103,7 @@ input[type='checkbox'] {
 label {
   display: block;
   margin: 20px 0 8px;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.9rem;
 }
 :focus-visible {
@@ -994,6 +996,99 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+/* Shared visual hierarchy for classroom actions and feedback. */
+.link-grid a.button {
+  background: var(--primary);
+  color: var(--on-primary);
+  border-color: var(--primary);
+}
+.link-grid a.button.secondary {
+  background: var(--mint);
+  color: var(--primary);
+}
+button.secondary,
+.button.secondary {
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+button,
+.button,
+.shortcut,
+.link-grid a {
+  transition: box-shadow var(--motion-fast);
+}
+@media (hover: hover) {
+  button:enabled:hover,
+  .button:hover,
+  .shortcut:hover,
+  .link-grid a:hover {
+    box-shadow: 0 0 0 2px var(--primary);
+  }
+}
+.text-link,
+.section-heading a,
+.full-link,
+.feed-card > a {
+  font-size: 0.875rem;
+  font-weight: 750;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.page-heading h1,
+.card > h1,
+.welcome-card h2 {
+  color: var(--primary);
+  font-weight: 800;
+}
+.welcome-card .button {
+  font-size: 0.9rem;
+}
+.shortcut strong,
+.card-heading strong {
+  font-size: 0.9rem;
+}
+.shortcut small,
+.card-heading p,
+.pill {
+  font-size: 0.75rem;
+}
+.sidebar nav a.router-link-active {
+  box-shadow: inset 4px 0 0 var(--primary);
+}
+.bottom-nav a.router-link-active {
+  background: var(--mint);
+  border-radius: 10px;
+  box-shadow: inset 0 3px 0 var(--primary);
+}
+.feed-tabs button.selected {
+  background: var(--primary);
+  color: var(--on-primary);
+  font-weight: 750;
+}
+p[role='alert'],
+p[role='status'],
+.notice {
+  padding: 14px 16px;
+  border-radius: 10px;
+  border-inline-start: 4px solid var(--primary);
+  background: var(--mint);
+  color: var(--primary);
+  font-weight: 650;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+p[role='alert'] {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: var(--surface);
+}
+.task-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-block: 16px;
+  align-items: center;
+}
+@include classroom.layout;
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

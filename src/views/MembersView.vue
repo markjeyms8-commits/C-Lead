@@ -1,8 +1,8 @@
 <template>
   <AppLayout :title="t('members.title')"
-    ><section class="card">
-      <h1>{{ t('members.title') }}</h1>
-      <RouterLink v-if="admin" to="/administration">{{
+    ><section class="card roster-page">
+      <PageHero :title="t('members.title')" />
+      <RouterLink v-if="admin" to="/administration" class="button">{{
         t('members.manage')
       }}</RouterLink>
       <p v-if="loading" role="status">{{ t('account.loading') }}</p>
@@ -13,27 +13,42 @@
         v-model="search"
         type="search"
       />
-      <label for="member-role">{{ t('account.role') }}</label><select
-        id="member-role"
-        v-model="role"
-      >
-        <option value="">{{ t('members.all') }}</option>
-        <option v-for="r in roles" :key="r" :value="r">
-          {{ t(`roles.${r}`) }}
-        </option>
-      </select>
-      <template v-if="admin"
-        ><label for="member-status">{{ t('members.status') }}</label
-        ><select id="member-status" v-model="status">
-          <option value="">{{ t('members.all') }}</option>
-          <option value="active">{{ t('members.active') }}</option>
-          <option value="inactive">{{ t('members.inactive') }}</option>
-        </select></template
-      >
+      <div class="roster-filters">
+        <div>
+          <label for="member-role">{{ t('account.role') }}</label><select
+            id="member-role"
+            v-model="role"
+          >
+            <option value="">{{ t('members.all') }}</option>
+            <option v-for="r in roles" :key="r" :value="r">
+              {{ t(`roles.${r}`) }}
+            </option>
+          </select>
+        </div>
+        <div v-if="admin">
+          <label for="member-status">{{ t('members.status') }}</label><select
+            id="member-status"
+            v-model="status"
+          >
+            <option value="">{{ t('members.all') }}</option>
+            <option value="active">{{ t('members.active') }}</option>
+            <option value="inactive">{{ t('members.inactive') }}</option>
+          </select>
+        </div>
+      </div>
       <p v-if="!loading && !filtered.length">{{ t('members.empty') }}</p>
       <section v-for="group in ['officers', 'students']" :key="group">
-        <h2>{{ t(`members.${group}`) }}</h2>
-        <ul>
+        <h2 class="list-section-title">
+          {{ t(`members.${group}`) }}
+          <span class="pill">{{
+            filtered.filter((m) =>
+              group === 'officers'
+                ? m.role !== 'student'
+                : m.role === 'student',
+            ).length
+          }}</span>
+        </h2>
+        <ul class="member-list">
           <li
             v-for="member in filtered.filter((m) =>
               group === 'officers'
@@ -42,14 +57,18 @@
             )"
             :key="member.id"
           >
-            <InitialsAvatar :name="member.full_name" /><strong>{{
-              member.full_name
-            }}</strong>
-            <p>@{{ member.username }} · {{ t(`roles.${member.role}`) }}</p>
-            <p>{{ t('account.studentNumber') }}: {{ member.student_number }}</p>
-            <p v-if="admin">
-              {{ t(member.active ? 'members.active' : 'members.inactive') }}
-            </p>
+            <InitialsAvatar :name="member.full_name" />
+            <div class="member-info">
+              <strong>{{ member.full_name }}</strong>
+              <p>@{{ member.username }}</p>
+              <span class="pill">{{ t(`roles.${member.role}`) }}</span>
+              <p>
+                {{ t('account.studentNumber') }}: {{ member.student_number }}
+              </p>
+              <p v-if="admin">
+                {{ t(member.active ? 'members.active' : 'members.inactive') }}
+              </p>
+            </div>
           </li>
         </ul>
       </section>
@@ -61,6 +80,7 @@ import { ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { onIonViewWillEnter } from '@ionic/vue';
 import { useI18n } from 'vue-i18n';
+import PageHero from '@/components/common/PageHero.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import InitialsAvatar from '@/components/common/InitialsAvatar.vue';
 import { memberRoster } from '@/services/modules/administration';

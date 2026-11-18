@@ -1,6 +1,9 @@
 <template>
   <AppLayout :title="t(`pages.${pageKey}.title`)"
-    ><section class="narrow card">
+    ><section
+      class="narrow card"
+      :class="{ 'profile-page': mode === 'profile' }"
+    >
       <h1>{{ t(`pages.${pageKey}.title`) }}</h1>
       <p v-if="loading" role="status">{{ t('account.loading') }}</p>
       <p v-if="error" role="alert" class="field-error">{{ t(error) }}</p>
@@ -10,8 +13,15 @@
       <p v-if="success" role="status">{{ t(success) }}</p>
       <template v-if="!loading && auth.profile">
         <template v-if="mode === 'profile'"
-          ><InitialsAvatar :name="auth.profile.full_name" />
-          <h2>{{ auth.profile.full_name }}</h2>
+          ><div class="profile-identity">
+            <InitialsAvatar :name="auth.profile.full_name" />
+            <div>
+              <h2>{{ auth.profile.full_name }}</h2>
+              <span class="pill">{{ t(`roles.${auth.profile.role}`) }}</span>
+              <p>{{ t('brand.section') }}</p>
+            </div>
+            <CiMascot />
+          </div>
           <dl>
             <dt>{{ t('auth.username') }}</dt>
             <dd>{{ auth.profile.username }}</dd>
@@ -20,21 +30,23 @@
             <dt>{{ t('account.role') }}</dt>
             <dd>{{ t(`roles.${auth.profile.role}`) }}</dd>
           </dl>
-          <RouterLink
-            v-if="
-              ['president', 'vice_president', 'secretary'].includes(
-                auth.profile.role,
-              )
-            "
-            to="/administration/terms"
-            >{{ t('academic.title') }}</RouterLink
-          >
-          <RouterLink
-            v-if="['president', 'vice_president'].includes(auth.profile.role)"
-            to="/administration"
-            >{{ t('admin.title') }}</RouterLink
-          >
-          <nav class="link-grid" :aria-label="t('nav.profile')">
+          <nav class="profile-admin-links">
+            <RouterLink
+              v-if="
+                ['president', 'vice_president', 'secretary'].includes(
+                  auth.profile.role,
+                )
+              "
+              to="/administration/terms"
+              >{{ t('academic.title') }}</RouterLink
+            >
+            <RouterLink
+              v-if="['president', 'vice_president'].includes(auth.profile.role)"
+              to="/administration"
+              >{{ t('admin.title') }}</RouterLink
+            >
+          </nav>
+          <nav class="link-grid settings-links" :aria-label="t('nav.profile')">
             <RouterLink v-for="link in links" :key="link.key" :to="link.path"
               >{{ t(`pages.${link.key}.title`) }} →</RouterLink
             >
@@ -144,6 +156,7 @@ import { computed, ref } from 'vue';
 import { onIonViewWillEnter, alertController } from '@ionic/vue';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
+import CiMascot from '@/components/common/CiMascot.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import InitialsAvatar from '@/components/common/InitialsAvatar.vue';
 import NotificationChoices from '@/components/common/NotificationChoices.vue';

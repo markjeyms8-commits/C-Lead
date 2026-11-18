@@ -4,6 +4,7 @@
     class="comment"
     :class="{ reply: !!comment.parent_id }"
   >
+    <InitialsAvatar :name="author" />
     <p>
       <strong>{{ author }}</strong><span v-if="comment.parent_id">
         ·
@@ -42,6 +43,7 @@
 </template>
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n';
+import InitialsAvatar from '@/components/common/InitialsAvatar.vue';
 import ReactionBar from './ReactionBar.vue';
 import type { Comment, Reaction, ReactionName } from '@/types/communication';
 defineProps<{

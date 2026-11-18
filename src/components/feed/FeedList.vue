@@ -1,18 +1,15 @@
 <template>
-  <section>
-    <nav class="link-grid">
+  <section class="classroom-feed">
+    <nav class="link-grid composer-actions">
       <RouterLink to="/polls">{{ t('polls.title') }}</RouterLink>
-      <RouterLink v-if="canPublish" to="/announcements/new">{{
+      <RouterLink v-if="canPublish" to="/announcements/new" class="button">{{
         t('feed.createOfficial')
-      }}</RouterLink><RouterLink to="/discussions/new">{{
-        t('feed.createDiscussion')
-      }}</RouterLink
-      ><RouterLink v-if="canPublish" to="/discussions/review">{{
-        t('feed.review')
-      }}</RouterLink
-      ><RouterLink v-if="canPublish" to="/moderation">{{
-        t('feed.moderation')
-      }}</RouterLink>
+      }}</RouterLink><RouterLink
+        to="/discussions/new"
+        class="button"
+        :class="{ secondary: canPublish }"
+        >{{ t('feed.createDiscussion') }}</RouterLink
+      >
     </nav>
     <div class="feed-tabs" role="group" :aria-label="t('feed.filter')">
       <button
@@ -42,11 +39,10 @@
     <button v-if="error" @click="load">{{ t('account.retry') }}</button>
     <p v-if="!loading && !rows.length">{{ t('feed.empty') }}</p>
     <article v-for="post in rows" :key="post.id" class="card feed-card">
-      <span class="pill">{{ t(`feed.${post.kind}`) }}</span><span
-        v-if="post.pinned"
-      >
-        · {{ t('feed.pinned') }}</span
-      >
+      <div v-if="post.pinned" class="pinned-banner">
+        <span aria-hidden="true">◆</span> {{ t('feed.pinned') }}
+      </div>
+      <span class="pill">{{ t(`feed.${post.kind}`) }}</span>
       <h2>
         <RouterLink :to="`/announcements/${post.id}`">{{
           post.title

@@ -1,7 +1,7 @@
 <template>
   <AppLayout :title="t('attendance.title')"
     ><section v-if="route.path === path" class="card">
-      <h1>{{ t('attendance.title') }}</h1>
+      <PageHero :title="t('attendance.title')" />
       <p v-if="loading" role="status">{{ t('account.loading') }}</p>
       <p v-if="error" role="alert">{{ t('feed.error') }}</p>
       <button v-if="error" @click="load">{{ t('account.retry') }}</button>
@@ -81,6 +81,14 @@
       ></template>
       <template v-else-if="current && !loading"
         ><h2>{{ current.title }}</h2>
+        <dl v-if="records.length" class="attendance-summary">
+          <div v-for="status in statusOptions" :key="status">
+            <dt>{{ t(`attendance.${status}`) }}</dt>
+            <dd>
+              {{ records.filter((record) => record.status === status).length }}
+            </dd>
+          </div>
+        </dl>
         <p>
           {{ t(`attendance.${current.kind}`) }} ·
           {{ dateManila(current.occurred_at, locale) }}
@@ -159,6 +167,7 @@ import { onIonViewWillEnter, alertController } from '@ionic/vue';
 import { useI18n } from 'vue-i18n';
 import { useForm } from 'vee-validate';
 import { z } from 'zod';
+import PageHero from '@/components/common/PageHero.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import ReasonForm from '@/components/feed/ReasonForm.vue';
 import { useAuthStore } from '@/stores/auth';

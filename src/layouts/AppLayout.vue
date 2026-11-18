@@ -4,8 +4,7 @@
       ><div class="app-frame">
         <aside class="sidebar">
           <RouterLink to="/home" class="brand"
-            ><span class="brand-mark">C<span>✦</span></span
-            ><span
+            ><CiMascot /><span
               >C-LEAD<small>{{ t('brand.subtitle') }}</small></span
             ></RouterLink
           >
@@ -38,8 +37,8 @@
         </aside>
         <div class="workspace">
           <header class="topbar">
-            <span class="mobile-brand">C-LEAD <span>✦</span></span
-            ><span class="breadcrumb"
+            <span class="mobile-brand">{{ title }}</span><span
+              class="breadcrumb"
               >{{ t('brand.section') }} <span>/</span> {{ title }}</span
             >
             <div class="header-actions">

@@ -1,16 +1,16 @@
 :root {
   --font: 'Nunito Sans', 'Aptos', 'Segoe UI', sans-serif;
-  --primary: #164f3b;
+  --primary: #00552e;
   --on-primary: #fff;
-  --text: #233d32;
+  --text: #082f1c;
   --muted: #58685e;
-  --background: #f6f8f5;
+  --background: #f8fbf7;
   --surface: #fff;
   --border: #e2e9e1;
-  --mint: #e9f3e8;
+  --mint: #e8f9df;
   --gold: #b98a32;
-  --hero: #edf4e5;
-  --hero-border: #dfebd4;
+  --hero: #effce7;
+  --hero-border: #dcefd4;
   --hero-orbit: #e0edcf;
   --gold-surface: #faf6e9;
   --gold-border: #eee6cc;
@@ -18,10 +18,10 @@
   --danger: #b02c37;
   --focus: #ad7925;
   --radius-lg: 18px;
-  --shadow: 0 3px 12px #233d3203;
+  --shadow: 0 2px 5px #123f320a;
   --space-unit: 4px;
   --motion-fast: 160ms;
-  --ion-color-primary: #164f3b;
-  --ion-color-primary-rgb: 22, 79, 59;
+  --ion-color-primary: #00552e;
+  --ion-color-primary-rgb: 0, 85, 46;
   --ion-color-primary-contrast: #fff;
 }
