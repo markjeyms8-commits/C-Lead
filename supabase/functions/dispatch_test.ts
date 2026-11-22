@@ -10,7 +10,8 @@ const scheduler = 'fictional-scheduler-secret-at-least-32-characters';
 async function setup(
   run: (calls: string[], outcomes: string[]) => Promise<void>,
   status = 201,
-  configured = true,
+  webConfigured = true,
+  provider: 'web' | 'fcm' = 'web',
 ) {
   const names = [
       'CLEAD_SCHEDULER_SECRET',
@@ -19,6 +20,7 @@ async function setup(
       'VAPID_PUBLIC_KEY',
       'VAPID_PRIVATE_KEY',
       'VAPID_SUBJECT',
+      'FCM_SERVICE_ACCOUNT',
     ],
     previous = names.map((n) => Deno.env.get(n));
   const keys = webpush.generateVAPIDKeys();
@@ -42,9 +44,41 @@ async function setup(
     keys.publicKey,
     keys.privateKey,
     'mailto:test@example.invalid',
+    '',
   ];
   names.forEach((n, i) => Deno.env.set(n, values[i]));
-  if (!configured) Deno.env.delete('VAPID_PRIVATE_KEY');
+  if (!webConfigured) {
+    Deno.env.delete('VAPID_PUBLIC_KEY');
+    Deno.env.delete('VAPID_PRIVATE_KEY');
+    Deno.env.delete('VAPID_SUBJECT');
+  }
+  if (provider === 'fcm') {
+    const fcm = await crypto.subtle.generateKey(
+      {
+        name: 'RSASSA-PKCS1-v1_5',
+        modulusLength: 2048,
+        publicExponent: new Uint8Array([1, 0, 1]),
+        hash: 'SHA-256',
+      },
+      true,
+      ['sign', 'verify'],
+    );
+    const privateKey = new Uint8Array(
+      await crypto.subtle.exportKey('pkcs8', fcm.privateKey),
+    );
+    const pem = btoa(String.fromCharCode(...privateKey))
+      .match(/.{1,64}/g)!
+      .join('\n');
+    Deno.env.set(
+      'FCM_SERVICE_ACCOUNT',
+      JSON.stringify({
+        project_id: 'fictional-project',
+        client_email: 'fictional@fictional-project.iam.gserviceaccount.com',
+        private_key: `-----BEGIN PRIVATE KEY-----\n${pem}\n-----END PRIVATE KEY-----\n`,
+        token_uri: 'https://oauth2.googleapis.com/token',
+      }),
+    );
+  }
   const original = globalThis.fetch,
     calls: string[] = [],
     outcomes: string[] = [];
@@ -59,7 +93,15 @@ async function setup(
         {
           job_id: '00000000-0000-4000-a000-000000000001',
           claim_id: '00000000-0000-4000-a000-000000000002',
-          endpoint: 'https://fcm.googleapis.com/fcm/send/fictional',
+          provider,
+          endpoint:
+            provider === 'web'
+              ? 'https://fcm.googleapis.com/fcm/send/fictional'
+              : null,
+          device_token:
+            provider === 'fcm'
+              ? 'fictional-fcm-registration-token-1234567890'
+              : null,
           p256dh: base64(raw),
           auth_secret: base64(crypto.getRandomValues(new Uint8Array(16))),
           title: 'C-LEAD',
@@ -69,11 +111,33 @@ async function setup(
       ];
     else if (path.endsWith('/finish_push_job'))
       outcomes.push(JSON.parse(String(init?.body)).outcome);
-    else if (url.startsWith('https://fcm.googleapis.com/')) {
+    else if (url === 'https://oauth2.googleapis.com/token') {
       assert(init?.redirect === 'error');
-      assert(new Headers(init?.headers).get('ttl') === '60');
-      assert(init?.body instanceof Uint8Array);
-      assert(!new TextDecoder().decode(init.body).includes('Open the app'));
+      return new Response(
+        JSON.stringify({
+          access_token: 'fictional-fcm-access',
+          expires_in: 3600,
+        }),
+        {
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+    } else if (url.startsWith('https://fcm.googleapis.com/')) {
+      assert(init?.redirect === 'error');
+      if (provider === 'web') {
+        assert(new Headers(init?.headers).get('ttl') === '60');
+        assert(init?.body instanceof Uint8Array);
+        assert(!new TextDecoder().decode(init.body).includes('Open the app'));
+      } else {
+        assert(
+          new Headers(init?.headers).get('authorization') ===
+            'Bearer fictional-fcm-access',
+        );
+        const message = JSON.parse(String(init?.body)).message;
+        assert(message.token === 'fictional-fcm-registration-token-1234567890');
+        assert(message.notification.body === 'Open the app');
+        assert(message.data.path === '/notifications');
+      }
       return new Response('', { status });
     } else throw new Error('Unexpected request');
     return new Response(JSON.stringify(value), {
@@ -116,6 +180,21 @@ Deno.test('in-app reminders still run when VAPID is unavailable', () =>
     201,
     false,
   ),
+);
+Deno.test(
+  'native FCM delivery uses server credentials and keeps generic lock-screen copy',
+  () =>
+    setup(
+      async (_calls, outcomes) => {
+        const r = await handleDispatch(request());
+        assert(r.status === 200);
+        assert((await r.json()).push_configured === true);
+        assert(outcomes[0] === 'delivered');
+      },
+      201,
+      false,
+      'fcm',
+    ),
 );
 Deno.test(
   'push is encrypted and acknowledged only after provider success',

@@ -17,6 +17,16 @@ Current run: implemented Milestones 5–12 and the Milestone 13 credential-free 
 - Milestone 12: implementation complete; hosted/device verification pending — account/session-scoped read-only offline records, real Update/Later lifecycle, live upcoming items, problem reporting, lazy report libraries and responsive/localized pages.
 - Milestone 13: credential-free codebase audit and domain test coverage complete. Actual Supabase integration and real-device pilot verification remain external gates. See AUDIT.md, PLAN.md and SPECIFICATION.txt.
 
+## Android APK and native push — November 22, 2026
+
+- Added Capacitor 8.6.2 and scaffolded the Android project with package ID `com.clead.sectionc`. Added Android-only Vite build/sync/open commands; that build omits the PWA worker, while the regular web/PWA build remains unchanged. The native Push Notifications plugin, Android notification channel, permission/FCM-token registration, session-aware re-registration and notification-tap routing are implemented.
+- Added additive migration 202611220001 for private, session-bound FCM tokens and provider-specific push job claiming. The dispatcher now supports Web Push and FCM HTTP v1 independently, obtains short-lived OAuth tokens from a server-only `FCM_SERVICE_ACCOUNT`, and preserves existing VAPID delivery. Edge CORS supports exact-origin allowlists for both hosted web and Capacitor origins.
+- Credential-free verification: Android Vite build and Capacitor sync passed; PGlite notification database suite 8/8; targeted Deno handler/CORS suite 18/18; Deno type checks passed; ESLint and formatting passed. Android Studio/SDK are now available and a C-LEAD 1.0 package is installed on a TECNO test phone, but the signed distributable APK and native FCM delivery are not verified yet.
+- Android login CORS follow-up — November 22, 2026: deployed the updated `username-login` Edge Function to the confirmed hosted C-LEAD project. Read-only preflights now return `Access-Control-Allow-Origin` for `https://localhost` and `https://c-lead.vercel.app`; `http://localhost` remains disallowed because Capacitor Android defaults to HTTPS. This confirms the browser-origin gate is fixed, but a successful account login has not yet been verified. No database records or frontend deployment were changed.
+- Android install-guard follow-up — November 22, 2026: the router treated the Capacitor APK as an uninstalled mobile browser and redirected authenticated members to `/install`. Native Capacitor platforms are now considered installed; a focused regression test covers APK and Android-browser behavior. The Android Vite build and Capacitor asset sync pass. Regenerate and reinstall the signed APK before verifying the phone UI; the already-installed package still contains the old guard.
+- Remaining external setup: Firebase Android app and `google-services.json`, server-only Firebase service-account secret, exact `ALLOWED_ORIGINS` Supabase secret, additive migration application and Edge Function deployment. Do not claim native push or APK delivery verified until tested on a physical Android device. No hosted database mutation or frontend deployment was made for this work.
+- The credential-free Playwright shell suite was attempted but produced no test results before stalling; it was stopped. Browser E2E is not claimed as passed for this change.
+
 ## Previous authentication verification — November 13, 2026
 
 - `npm run lint` — passed, zero errors.
@@ -123,6 +133,32 @@ Run `npm run verify` sequentially. When approved pre-production credentials beco
 - The first Vercel build rejected automatically injected `VITE_VERCEL_GIT_REPO_ID` metadata. Vite now exposes only the three documented application environment prefixes; Vercel metadata is accepted at build time but excluded from browser environment values. Other unapproved Vite variables and server credentials remain rejected.
 - Added a regression test for Vercel metadata exclusion and preservation of the public Supabase key. Formatting, ESLint, all four environment regression tests, TypeScript and production build passed with injected Vercel metadata. A scan confirmed the metadata marker and repository-ID variable are absent from dist. Hosted authentication setup remains pending.
 
+## Hosted backend deployment — November 17, 2026
+
+- User reported saving LOGIN_PASSWORD_PEPPER and ALLOWED_ORIGIN in Supabase secrets. Deployed username-login, change-password, admin-accounts and attachments sequentially through API bundling to the exact matched project lbdqeqpmfvjnrokaegps, without Docker.
+- Read-only hosted checks: all four functions returned HTTP 204 to OPTIONS with the exact allowed origin https://c-lead.vercel.app. The deployed /login page returned HTTP 200 HTML. This confirms endpoint/CORS availability only, not successful authentication, RLS or Storage integration.
+- No accounts were created and no student data was imported. Fictional-account integration verification, first-President provisioning and scheduled notification/push configuration remain pending.
+
+## Hosted verification attempt — November 17, 2026
+
+- Operator configuration validation passed. Live run 0dc8aea8-6f2a-4803-ac38-8443478c6f33 failed without a success or cleanup confirmation; hosted integration remains unverified. Do not start another run until this run is inspected/retired through the existing cleanup command.
+- The local runner now reports static phase names and allowlisted HTTP/database status codes, never raw remote messages or credential values. Added tests for diagnostic non-disclosure. No fixture ownership checks, cleanup scope or audit-retention behavior changed.
+
+- Follow-up run 67e9f289-6e7c-4791-b80f-9f3b6832a73c reserved/provisioned its fictional account but username-login returned 401. The operator output confirms successful deactivation, Auth ban and lock release; audit referents were retained. Deployed gateway JWT verification is correctly disabled. Investigating the local/server pepper match; no successful hosted integration claim.
+- Corrected diagnostic summaries to preserve the original failing phase and avoid requesting cleanup after confirmed successful retirement. Formatting, targeted ESLint, syntax check and six hosted-safety tests passed.
+
+## First-President setup — November 17, 2026
+
+- At the user's direction, further live integration testing is deferred; it remains unpassed. The first-President bootstrap was attempted from the operator's private recovery file but returned a generic failure. Its completion is not confirmed. Preserve that file and UUID for retries.
+- Bootstrap now reports static phases, invalid field names and allowlisted HTTP/database codes, never private values or remote error messages. Seven credential-free safety/diagnostic tests passed, including invalid-input rejection before any account reservation.
+
+## Explicitly authorized pre-production reset — November 17, 2026
+
+- The user explicitly superseded the earlier no-reset restriction and authorized clearing setup data to create a fresh President. Inspected state: two setup Auth/profile accounts (President plus retired fictional test), six audit entries, no posts/tasks/files. A transaction rejected unexpected table inventory, classroom records, sessions or unrecognized Auth ownership before clearing application data.
+- Cleared setup rows and audit entries under that explicit exception; removed only the two inspected Auth accounts through the Auth Admin API. No schemas, policies, functions, buckets or migrations were dropped. Verified zero Auth users, profiles, bootstrap reservations and audit rows after reset, with all 17 migrations retained.
+- Generated a new server-only login pepper while no accounts existed, saved it to Supabase, and verified its metadata hash against the exact in-memory bootstrap value. An encrypted Windows DPAPI backup is retained under the operator's local C-LEAD application-data folder, outside Git. Temporary plaintext secret input was removed.
+- Archived the old private bootstrap input outside Git, assigned a fresh Auth UUID while preserving the previously entered President details, and successfully provisioned the fresh President using the matched secret. No additional login tests were run, per the user's preference; broader hosted integration remains unpassed.
+
 ## UX visual hierarchy — November 18, 2026
 
 - Strengthened primary/secondary action styling, member administration and task/publishing creation links, headings, readable shortcut labels, underlined action links, selected navigation/filter states, and status/error callouts. Preserved existing translations, role guards, light/dark tokens and reduced-motion behavior.
@@ -137,3 +173,28 @@ Run `npm run verify` sequentially. When approved pre-production credentials beco
 - Added the image to service-worker precaching and verified offline image loading. Removed background-color fades after browser checks detected transient theme-switch contrast failures. No Supabase records or credentials were changed.
 - Credential-free checks: formatting, ESLint, TypeScript and production builds passed; 98 unit/PostgreSQL tests passed; 19 shell browser tests passed with one existing intentional skip; all 22 authenticated fixture tests passed, including eight redesigned screens in light/dark mobile layouts. Three timeouts under concurrent test load passed on isolated single-worker retries. Final visual review covered the home, member and profile layouts. Existing bundle-size and service-worker deprecation warnings remain.
 - The UI update is prepared for the user-authorized push to GitHub main. Environment files, credentials, real roster data and unrelated local bootstrap diagnostics are excluded. Hosted integration and mobile push delivery remain separate outstanding gates.
+
+## Hosted push configuration — November 19, 2026
+
+- Configured stable VAPID keys and a scheduler credential on the explicitly matched existing hosted project. Private recovery material is Windows-user encrypted outside Git; temporary plaintext configuration was removed. Added the guarded PowerShell setup script and operational instructions without using the fictional-only integration runner on the populated classroom.
+- Deployed dispatch-notifications through API bundling and configured an active minute-by-minute Cron job with its bearer credential in Supabase Vault. A direct authorized dispatcher call returned HTTP success, push_configured=true, processed=0 and delivered=0; this does not prove phone delivery.
+- Added only VITE_VAPID_PUBLIC_KEY to Vercel Production and rebuilt deployment AYLKHbjmkfCZnRhqBF8oomtFSo7g. Vercel reports Ready and Current for c-lead.vercel.app. No private keys were added to Vite.
+- Read-only checks confirmed 17 migrations, seven active accounts, no public tables without RLS, a private attachment bucket, notification Realtime publication, disabled public signup and correct origin responses from the existing Edge Functions. These checks are not a substitute for complete live integration verification.
+- Dispatcher type checking and six handler tests passed. Device opt-in and actual push receipt remain pending. App-icon badges are not implemented. Broader hosted integration remains unpassed; no real accounts or classroom records were deleted or imported by this setup.
+
+- Follow-up live verification: the production JavaScript contains the expected public VAPID key. The latest three scheduled HTTP responses returned 200, timed_out=false and push_configured=true. Actual device receipt is still pending. PowerShell syntax, exact-target mismatch rejection and invalid-contact rejection passed before network access.
+
+- User confirmed Push enabled on their phone after the production rebuild. Notification-bar receipt from another member remains awaiting confirmation. Formatting, ESLint, TypeScript and the production build passed; existing bundle-size and service-worker deprecation warnings remain.
+
+- Device delivery confirmed: the user enabled push, then confirmed a notification appeared in the phone notification bar after another member commented. This verifies one real-device end-to-end path; it does not claim all browsers/iOS, revocation races or the broader hosted integration suite passed.
+
+- Full local Vitest reruns stalled before reporting results, including a single-worker retry, and were stopped. No new full-suite pass is claimed. The setup did not change application runtime code; prior full-suite results remain historical.
+
+- Hosted safety/diagnostic tests: all seven passed. No hosted integration runner was executed against the populated classroom.
+
+## Minimal UI/UX refinement — November 22, 2026
+
+- Simplified shared app chrome, page headings, cards, forms, shortcut navigation and mobile tab bar using existing light/dark theme tokens. Reduced oversized decorative hero space and strengthened spacing, button hierarchy, focus visibility and touch targets. Existing feature behavior and Ci artwork are unchanged.
+- Replaced the installable app icon assets with the user-approved Ci-and-LEAD logo.
+- Formatting, ESLint, TypeScript and production build passed. The build retains the existing large JavaScript chunk and PWA `inlineDynamicImports` deprecation warnings.
+- The full `npm run verify` run stopped at Vitest after launching without reporting test results; the focused shell Playwright attempt likewise produced no test result before it was stopped. No new unit or browser test pass is claimed. Hosted verification was not run.

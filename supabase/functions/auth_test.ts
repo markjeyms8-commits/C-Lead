@@ -1,7 +1,7 @@
 import { handleAdminAccounts } from './admin-accounts/handler.ts';
 import { handleUsernameLogin } from './username-login/handler.ts';
 import { handlePasswordChange } from './change-password/handler.ts';
-import { passwordDigest, readBody } from './_shared/auth.ts';
+import { cors, passwordDigest, preflight, readBody } from './_shared/auth.ts';
 
 function assert(value: unknown, message = 'Assertion failed'): asserts value {
   if (!value) throw new Error(message);
@@ -29,6 +29,38 @@ const request = (body: unknown, authorized = false) =>
     },
     body: JSON.stringify(body),
   });
+Deno.test(
+  'Edge Function CORS accepts exact web and native origins only',
+  () => {
+    const old = Deno.env.get('ALLOWED_ORIGINS');
+    Deno.env.set(
+      'ALLOWED_ORIGINS',
+      'https://c-lead.vercel.app,http://localhost,https://localhost',
+    );
+    try {
+      const native = new Request('https://edge.test/function', {
+        method: 'POST',
+        headers: { Origin: 'http://localhost' },
+      });
+      assert(
+        new Headers(cors(native)).get('Access-Control-Allow-Origin') ===
+          'http://localhost',
+      );
+      assert(preflight(native) === null);
+      const rejected = new Request('https://edge.test/function', {
+        method: 'POST',
+        headers: { Origin: 'https://attacker.invalid' },
+      });
+      assert(
+        new Headers(cors(rejected)).get('Access-Control-Allow-Origin') === null,
+      );
+      assert(preflight(rejected)?.status === 403);
+    } finally {
+      if (old === undefined) Deno.env.delete('ALLOWED_ORIGINS');
+      else Deno.env.set('ALLOWED_ORIGINS', old);
+    }
+  },
+);
 async function withApi(
   run: (
     calls: Array<{ path: string; body: Record<string, unknown> }>,

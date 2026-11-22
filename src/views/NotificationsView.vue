@@ -85,7 +85,7 @@ import {
   pushEnabled,
   enablePush,
   disablePush,
-  vapidPublicKey,
+  pushConfigured,
   watchNotices,
   type Notice,
 } from '@/services/modules/notifications';
@@ -94,7 +94,7 @@ const { t, locale } = useI18n(),
   router = useRouter(),
   { online } = storeToRefs(useConnectivityStore()),
   supported = pushSupported(),
-  configured = !!vapidPublicKey;
+  configured = pushConfigured();
 const rows = ref<Notice[]>([]),
   page = ref(0),
   unread = ref(false),

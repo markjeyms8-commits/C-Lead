@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import { computed, ref, watch } from 'vue';
+import { Capacitor } from '@capacitor/core';
 import { useAuthStore } from './auth';
 import { can } from '@/utils/permissions';
 import type { Capability } from '@/types/domain';
@@ -59,7 +60,8 @@ export const useConnectivityStore = defineStore('connectivity', () => {
 });
 export const usePwaStore = defineStore('pwa', () => {
   const installed = ref(
-    matchMedia('(display-mode: standalone)').matches ||
+    Capacitor.isNativePlatform() ||
+      matchMedia('(display-mode: standalone)').matches ||
       Boolean((navigator as Navigator & { standalone?: boolean }).standalone),
   );
   const mobile =

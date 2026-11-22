@@ -233,3 +233,48 @@ it('suppresses queued jobs when their approved device session is revoked', async
     (await db.query(`select * from public.claim_push_jobs(10)`)).rows,
   ).toHaveLength(0);
 });
+it('registers private session-scoped FCM devices and leases only native jobs', async () => {
+  const token = 'fictional-fcm-registration-token-1234567890';
+  await asUser(db, 3, `select public.register_native_push('${token}')`);
+  expect(
+    (await asUser(db, 3, `select public.my_native_push_enabled() enabled`))
+      .rows,
+  ).toEqual([{ enabled: true }]);
+  expect(
+    (await asUser(db, 2, `select public.my_native_push_enabled() enabled`))
+      .rows,
+  ).toEqual([{ enabled: false }]);
+  await expect(
+    asUser(
+      db,
+      2,
+      `select * from private.push_subscriptions where provider='fcm'`,
+    ),
+  ).rejects.toThrow();
+  await db.exec(
+    `select private.notify_recipient('${userId(3)}','tasks','Private title','Pribadong pamagat','Private body','Pribadong nilalaman','/tasks/${task}')`,
+  );
+  const job = (
+    await db.query<{
+      job_id: string;
+      claim_id: string;
+      device_token: string;
+      provider: string;
+      body: string;
+      path: string;
+    }>(`select * from public.claim_push_jobs(10,'fcm')`)
+  ).rows[0]!;
+  expect(job).toMatchObject({
+    provider: 'fcm',
+    device_token: token,
+    body: 'Open C-LEAD for a new notification.',
+    path: '/notifications',
+  });
+  await db.exec(
+    `select public.finish_push_job('${job.job_id}','${job.claim_id}','invalid')`,
+  );
+  expect(
+    (await asUser(db, 3, `select public.my_native_push_enabled() enabled`))
+      .rows,
+  ).toEqual([{ enabled: false }]);
+});

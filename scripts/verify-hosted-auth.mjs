@@ -2,8 +2,22 @@ import process from 'node:process';
 import { randomUUID, createHmac } from 'node:crypto';
 import { createClient } from '@supabase/supabase-js';
 import { hostedConfiguration } from './hosted-safety.mjs';
-function check(condition) {
-  if (!condition) throw new Error('Verification failed');
+import { hostedFailureDetails } from './hosted-diagnostics.mjs';
+let phase = 'configuration';
+let failurePhase;
+let cleanupCompleted = false;
+function step(name) {
+  phase = name;
+  process.stdout.write(`Step: ${name}\n`);
+}
+function check(condition, result) {
+  if (!condition) {
+    failurePhase ??= phase;
+    process.stderr.write(
+      `Check failed: ${phase}${hostedFailureDetails(result)}\n`,
+    );
+    throw new Error('Verification failed');
+  }
 }
 async function main() {
   const c = hostedConfiguration(process.env);
@@ -18,27 +32,30 @@ async function main() {
     ),
   );
   async function fixture(name, extra = {}) {
+    step(name + (extra.release_lock ? ' (release lock)' : ''));
     const result = await admin.rpc(name, {
       run_id: run,
       target_ref: c.ref,
       ...extra,
     });
-    check(!result.error);
+    check(!result.error, result);
     return result.data;
   }
   async function cleanup() {
     const id = await fixture('retire_hosted_test');
+    step('cleanup Auth ownership lookup');
     const existing = await admin.auth.admin.getUserById(id);
-    check(!existing.error || existing.error.status === 404);
+    check(!existing.error || existing.error.status === 404, existing);
     if (existing.data?.user) {
       check(existing.data.user.app_metadata.clead_test_run === run);
-      check(
-        !(
-          await admin.auth.admin.updateUserById(id, { ban_duration: '876000h' })
-        ).error,
-      );
+      step('ban run-owned fictional Auth account');
+      const banned = await admin.auth.admin.updateUserById(id, {
+        ban_duration: '876000h',
+      });
+      check(!banned.error, banned);
     }
     await fixture('retire_hosted_test', { release_lock: true });
+    cleanupCompleted = true;
     process.stdout.write(
       'Fictional account retired; audit records and referents retained.\n',
     );
@@ -57,6 +74,7 @@ async function main() {
   const password = `TEST-${suffix}`;
   const email = `${suffix}@identity.c-lead.invalid`;
   try {
+    step('create fictional Auth account');
     const created = await admin.auth.admin.createUser({
       id,
       email,
@@ -64,21 +82,24 @@ async function main() {
       password: createHmac('sha256', c.pepper).update(password).digest('hex'),
       app_metadata: { clead_test_run: run },
     });
-    check(!created.error && created.data.user?.id === id);
+    check(!created.error && created.data.user?.id === id, created);
     await fixture('provision_hosted_test');
     const first = createClient(c.url, c.anonKey, options);
     const second = createClient(c.url, c.anonKey, options);
     const probe = createClient(c.url, c.anonKey, options);
     async function login(client, visiblePassword) {
+      step('username-login');
       const result = await client.functions.invoke('username-login', {
         body: { username, password: visiblePassword },
       });
-      check(!result.error && result.data?.session);
+      check(!result.error && result.data?.session, result);
+      step('restore approved Auth session');
       check(!(await client.auth.setSession(result.data.session)).error);
       check((await client.rpc('is_active_session')).data === true);
     }
     await login(first, password);
     await login(second, password);
+    step('refresh session and profile RLS');
     check(!(await first.auth.refreshSession()).error);
     check((await first.rpc('is_active_session')).data === true);
     const profile = await first
@@ -87,7 +108,9 @@ async function main() {
       .eq('id', id)
       .single();
     check(!profile.error && profile.data.id === id);
+    step('reject raw password bypass');
     check(!!(await probe.auth.signInWithPassword({ email, password })).error);
+    step('device session revocation and RLS');
     const sessions = await second.rpc('my_sessions');
     check(!sessions.error && sessions.data.length === 2);
     const other = sessions.data.find((row) => row.is_current);
@@ -99,6 +122,7 @@ async function main() {
     check((await second.rpc('is_active_session')).data === false);
     const denied = await second.from('profiles').select('id').eq('id', id);
     check(!denied.error && denied.data.length === 0);
+    step('complete onboarding');
     check(
       !(
         await first.rpc('complete_onboarding', {
@@ -112,16 +136,19 @@ async function main() {
       ).error,
     );
     const replacement = randomUUID() + randomUUID();
+    step('change password');
     const changed = await first.functions.invoke('change-password', {
       body: { password: replacement },
     });
-    check(!changed.error && changed.data?.success);
+    check(!changed.error && changed.data?.success, changed);
     await login(probe, replacement);
+    step('security notification');
     const notices = await probe
       .from('notifications')
       .select('id')
       .eq('category', 'security');
     check(!notices.error && notices.data.length > 0);
+    step('five-failure lockout');
     const attempts = createClient(c.url, c.anonKey, options);
     for (let attempt = 0; attempt < 5; attempt++) {
       const failed = await attempts.functions.invoke('username-login', {
@@ -138,13 +165,19 @@ async function main() {
     process.stdout.write(
       'Hosted login, refresh, RLS, revocation, onboarding, password and lockout checks passed.\n',
     );
+  } catch (error) {
+    failurePhase ??= phase;
+    process.stderr.write(
+      `Verification stopped during: ${phase}. Attempting run-owned cleanup.\n`,
+    );
+    throw error;
   } finally {
     await cleanup();
   }
 }
 main().catch(() => {
   process.stderr.write(
-    'Hosted verification failed. Check target variables and server configuration. Retry cleanup with the printed run UUID if present. No credentials were logged.\n',
+    `Hosted verification failed during: ${failurePhase ?? phase}.${cleanupCompleted ? ' Fictional account cleanup completed; no cleanup retry needed.' : ' Retry cleanup with the printed run UUID if present.'} No credentials were logged.\n`,
   );
   process.exitCode = 1;
 });

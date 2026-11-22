@@ -19,9 +19,16 @@ export const publicClient = () =>
   );
 export function cors(request: Request): HeadersInit {
   const origin = request.headers.get('origin');
-  const allowed = Deno.env.get('ALLOWED_ORIGIN');
+  const allowed = (
+    Deno.env.get('ALLOWED_ORIGINS') ??
+    Deno.env.get('ALLOWED_ORIGIN') ??
+    ''
+  )
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
   return {
-    ...(origin && origin === allowed
+    ...(origin && allowed.includes(origin)
       ? { 'Access-Control-Allow-Origin': origin }
       : {}),
     'Access-Control-Allow-Headers':
@@ -41,7 +48,15 @@ export function preflight(request: Request, maxBytes = 4096) {
   if (request.method !== 'POST')
     return response(request, { error: 'Method not allowed' }, 405);
   const origin = request.headers.get('origin');
-  if (origin && origin !== Deno.env.get('ALLOWED_ORIGIN'))
+  const allowed = (
+    Deno.env.get('ALLOWED_ORIGINS') ??
+    Deno.env.get('ALLOWED_ORIGIN') ??
+    ''
+  )
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+  if (origin && !allowed.includes(origin))
     return response(request, { error: 'Origin not allowed' }, 403);
   if (Number(request.headers.get('content-length') || 0) > maxBytes)
     return response(request, { error: 'Request too large' }, 413);

@@ -26,6 +26,7 @@ secrets/
 credentials/
 *first-president*.json
 service-account*.json
+android/app/google-services.json
 
 # Local tool state and diagnostics
 .codex/

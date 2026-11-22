@@ -141,20 +141,57 @@ Migrations 014–015 implement the calendar, deduplicated reminder ledger and pr
 
 Configure server secrets `CLEAD_SCHEDULER_SECRET` (a random secret of at least 32 characters), `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT` (a contact mailto URL) in the Supabase dashboard. Only the public VAPID key belongs in `VITE_VAPID_PUBLIC_KEY`. Keep the private key, scheduler secret and service role out of Vite. Use a stable VAPID key pair. Without VAPID configuration, the dispatcher still delivers in-app reminders.
 
-After independently setting both explicit project references and the fictional-only acknowledgment:
+### Configure push on an existing hosted classroom (Windows)
+
+This operational setup is separate from the fictional-account integration runner. Do not declare a classroom containing real members to be fictional-only pre-production, and do not reset it. From the repository root, use PowerShell 7 with Node and an authenticated Supabase CLI. Confirm the linked project matches both independently reviewed references:
 
 ```powershell
-node --input-type=module -e "import {hostedConfiguration} from './scripts/hosted-safety.mjs'; hostedConfiguration(process.env)"
-if ($LASTEXITCODE -ne 0) { throw 'Hosted target validation failed' }
-npx supabase functions deploy dispatch-notifications --project-ref $env:CLEAD_PROJECT_REF
-if ($LASTEXITCODE -ne 0) { throw 'Dispatcher deployment failed' }
-# Set CLEAD_SCHEDULER_SECRET privately to the same server secret; do not print it.
-Invoke-RestMethod -Method Post -Uri "$env:CLEAD_HOSTED_URL/functions/v1/dispatch-notifications" -Headers @{ Authorization = "Bearer $env:CLEAD_SCHEDULER_SECRET" }
+& ./scripts/configure-hosted-push.ps1 -ProjectRef '<actual-project-reference>' -ExpectedProjectRef '<independently-confirmed-project-reference>' -ContactEmail '<technical-contact-email>'
 ```
 
-Configure Supabase Cron through its dashboard to POST to that exact hosted dispatcher URL once per minute, with the scheduler bearer secret stored in Vault. Review the project reference before saving the job. Follow the official [scheduled Edge Functions documentation](https://supabase.com/docs/guides/functions/schedule-functions). Never include a service-role key in client-side scheduling. Run manual verification sequentially, with only the fictional disposable account subscribed.
+The script creates a stable P-256 VAPID key pair and scheduler credential, stores a Windows-user-encrypted recovery backup at `%LOCALAPPDATA%/C-LEAD/<project-reference>-push.dpapi`, verifies remote secret hashes, deploys only the dispatcher through API bundling (no Docker), and configures the named minute-by-minute Supabase Cron job using Vault. It refuses mismatched targets or existing keys that differ from the backup. Retain the backup; do not rotate keys casually. Its temporary plaintext files are removed in a finally block. Existing classroom records, schemas, accounts and audit records are retained.
+
+Copy only `supabase/.temp/push-public-key.txt` into the Vercel Production environment variable `VITE_VAPID_PUBLIC_KEY` (Config type), then redeploy Production. The same public value can be used in the ignored local frontend environment. Never copy the DPAPI file, private VAPID key or scheduler credential to Vercel or frontend variables.
+
+Verify the schedule without reading credentials or classroom content:
+
+```powershell
+npx --yes supabase db query --remote=<confirmed-project-reference> --read-only "select jobname, schedule, active from cron.job where jobname='clead-notification-dispatch'" --output json
+npx --yes supabase db query --remote=<confirmed-project-reference> --read-only "select r.status, r.start_time from cron.job_run_details r join cron.job j using(jobid) where j.jobname='clead-notification-dispatch' order by r.start_time desc limit 3" --output json
+```
+
+A successful cron SQL run confirms dispatch was queued, not provider delivery. Confirm the dispatcher's HTTP response and then verify receipt on an opted-in device. In C-LEAD, open Notifications and select Enable push, then allow the browser prompt. For iPhone, use the installed Home Screen web app. Existing notifications are not retroactively pushed; new eligible events after registration are required. Authors do not receive notifications for their own actions. App-icon badge counts are not currently implemented.
 
 The dispatcher processes jobs sequentially, validates provider endpoints, disallows redirects, checks preferences and approved sessions before claiming delivery, and sends generic lock-screen text. Jobs have expiring leases and bounded retries; permanent endpoint failures disable only the affected subscription. A provider acceptance followed by a lost acknowledgment may cause a retry; notification tags reduce duplicate display. Audit records and delivery metadata are retained. Real cron timing, provider delivery, permission prompts, iOS installed-PWA behavior and revoked-device races remain hosted/device verification gates.
+
+### Android APK and native Firebase Cloud Messaging
+
+The Android build uses Capacitor 8 with package ID `com.clead.sectionc`. Android Studio and the Android SDK are required to generate an APK. Capacitor is added to the existing Ionic Vue application; the normal web build and existing VAPID browser notifications remain separate. The Android build excludes the PWA service worker so native Capacitor plugins can initialize in its WebView.
+
+1. Create an Android app in Firebase with package ID `com.clead.sectionc`. Enable Firebase Cloud Messaging and download `google-services.json` into `android/app/google-services.json`. Keep that file out of public hosting and check the generated `.gitignore` rules before committing.
+2. Create a Firebase service account authorized to send FCM messages. Store the full JSON key as the Supabase Edge Function secret `FCM_SERVICE_ACCOUNT`. Never put it in `.env`, a `VITE_` variable, the Android project, GitHub, or a chat. The dispatcher exchanges it for a short-lived Google access token at runtime.
+3. In Supabase Function secrets, set `ALLOWED_ORIGINS` to a comma-separated exact-origin list containing the existing C-LEAD website origin and the Capacitor 8 Android origin `https://localhost` (Capacitor 6 and later default Android to HTTPS). Include `http://localhost` only if `server.androidScheme` is explicitly set to `http`. Do not use `*`. The existing `ALLOWED_ORIGIN` remains as a backwards-compatible fallback until this allowlist is configured.
+4. Apply `202611220001_native_push.sql` additively after migration 015. It adds private FCM tokens and session-scoped registration RPCs while preserving existing Web Push subscriptions. Do not reset the database.
+5. Deploy the CORS-updated auth and file functions so the Android WebView origin is accepted, and deploy `dispatch-notifications` after adding `FCM_SERVICE_ACCOUNT`. These use API bundling and do not require Docker:
+
+```powershell
+$projectRef = '<confirmed-project-reference>'
+npx supabase functions deploy username-login --project-ref $projectRef --use-api --yes
+npx supabase functions deploy change-password --project-ref $projectRef --use-api --yes
+npx supabase functions deploy admin-accounts --project-ref $projectRef --use-api --yes
+npx supabase functions deploy attachments --project-ref $projectRef --use-api --yes
+npx supabase functions deploy dispatch-notifications --project-ref $projectRef --use-api --yes
+```
+
+The existing `clead-notification-dispatch` Cron schedule continues to invoke the dispatcher; it claims web jobs and FCM jobs independently. 6. Build and sync the bundled Android assets, then open the native project in Android Studio:
+
+```powershell
+npm install
+npm run sync:android
+npm run open:android
+```
+
+In Android Studio, generate a signed APK using a protected signing key. For a local debug APK, use **Build → Build APK(s)**. On the installed app, open Notifications and enable push. Android 13+ will ask for notification permission. Verify delivery with the app foregrounded and backgrounded, and verify that tapping a push opens C-LEAD. The database stores only a device token in a private table; service-account credentials stay server-side. FCM access-token and device-delivery behavior still require real Firebase credentials and a physical Android-device test.
 
 Use `npm run check:edge` and `npm run test:edge` for the complete credential-free Edge suite. The isolated `supabase/functions/deno.json` and lockfile avoid resolving frontend packages in Deno.
 

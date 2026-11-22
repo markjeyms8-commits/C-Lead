@@ -22,12 +22,18 @@
 </template>
 <script setup lang="ts">
 import { IonApp, IonRouterOutlet } from '@ionic/vue';
+import { PushNotifications } from '@capacitor/push-notifications';
 import { useI18n } from 'vue-i18n';
 import { ref, watch, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useRegisterSW } from 'virtual:pwa-register/vue';
 import { useConnectivityStore, usePreferencesStore } from '@/stores/app';
+import {
+  nativeAndroidPush,
+  refreshNativePushIfEnabled,
+  safeInternalPath,
+} from '@/services/modules/notifications';
 const { t, locale } = useI18n();
 async function focusContent() {
   // Wait for Ionic's incoming-page transition before moving keyboard focus.
@@ -59,10 +65,42 @@ const preferences = usePreferencesStore();
 const auth = useAuthStore();
 const router = useRouter();
 let stopMonitoring = () => {};
+let removePushAction = () => {};
 onMounted(() => {
   stopMonitoring = auth.startMonitoring();
+  if (nativeAndroidPush) {
+    void PushNotifications.createChannel({
+      id: 'clead_updates',
+      name: 'C-LEAD updates',
+      description: 'Classroom announcements and activity alerts',
+      importance: 3,
+      visibility: 0,
+    }).catch(() => undefined);
+    void PushNotifications.addListener(
+      'pushNotificationActionPerformed',
+      ({ notification }) => {
+        const path = notification.data?.path;
+        void router.push(
+          safeInternalPath(typeof path === 'string' ? path : '/notifications'),
+        );
+      },
+    ).then((handle) => {
+      removePushAction = () => void handle.remove();
+    });
+  }
 });
-onUnmounted(() => stopMonitoring());
+onUnmounted(() => {
+  stopMonitoring();
+  removePushAction();
+});
+watch(
+  () => [auth.ready, auth.profile?.id] as const,
+  ([ready, userId]) => {
+    if (ready && userId && nativeAndroidPush)
+      void refreshNativePushIfEnabled().catch(() => undefined);
+  },
+  { immediate: true },
+);
 watch(
   () => auth.invalidated,
   (invalid) => {

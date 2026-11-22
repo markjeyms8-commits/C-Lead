@@ -8,6 +8,7 @@ export default ts.config(
       'dist/**',
       'dist-auth-tests/**',
       'dist-shell-tests/**',
+      'android/**',
       'node_modules/**',
       'supabase/functions/**',
       'playwright-report/**',
