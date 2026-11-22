@@ -1430,7 +1430,15 @@ label {
   .page-heading {
     align-items: flex-start;
     gap: 12px;
+    flex-wrap: wrap;
     margin-bottom: 18px;
+  }
+
+  .page-heading > .text-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    white-space: nowrap;
   }
 
   .page-heading h1 {
