@@ -1,7 +1,6 @@
 <template>
   <section class="classroom-feed">
-    <nav class="link-grid composer-actions">
-      <RouterLink to="/polls">{{ t('polls.title') }}</RouterLink>
+    <nav class="feed-actions">
       <RouterLink v-if="canPublish" to="/announcements/new" class="button">{{
         t('feed.createOfficial')
       }}</RouterLink><RouterLink
@@ -10,30 +9,35 @@
         :class="{ secondary: canPublish }"
         >{{ t('feed.createDiscussion') }}</RouterLink
       >
+      <RouterLink to="/polls" class="feed-tool-link">{{
+        t('polls.title')
+      }}</RouterLink>
     </nav>
-    <div class="feed-tabs" role="group" :aria-label="t('feed.filter')">
-      <button
-        v-for="value in ['all', 'announcement', 'discussion']"
-        :key="value"
-        :aria-pressed="kind === value"
-        :class="{ selected: kind === value }"
-        @click="kind = value"
-      >
-        {{ t(`feed.${value}`) }}
-      </button>
+    <div class="feed-controls">
+      <div class="feed-tabs" role="group" :aria-label="t('feed.filter')">
+        <button
+          v-for="value in ['all', 'announcement', 'discussion']"
+          :key="value"
+          :aria-pressed="kind === value"
+          :class="{ selected: kind === value }"
+          @click="kind = value"
+        >
+          {{ t(`feed.${value}`) }}
+        </button>
+      </div>
+      <div class="feed-view-control">
+        <label :for="`feed-mode-${instanceId}`">{{ t('feed.view') }}</label>
+        <select :id="`feed-mode-${instanceId}`" v-model="mode">
+          <option
+            v-for="value in ['active', 'archive', 'mine']"
+            :key="value"
+            :value="value"
+          >
+            {{ t(`feed.${value}`) }}
+          </option>
+        </select>
+      </div>
     </div>
-    <label :for="`feed-mode-${instanceId}`">{{ t('feed.view') }}</label><select
-      :id="`feed-mode-${instanceId}`"
-      v-model="mode"
-    >
-      <option
-        v-for="value in ['active', 'archive', 'mine']"
-        :key="value"
-        :value="value"
-      >
-        {{ t(`feed.${value}`) }}
-      </option>
-    </select>
     <p v-if="loading" role="status">{{ t('account.loading') }}</p>
     <p v-if="error" role="alert">{{ t('feed.error') }}</p>
     <button v-if="error" @click="load">{{ t('account.retry') }}</button>

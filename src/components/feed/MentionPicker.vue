@@ -1,33 +1,32 @@
 <template>
-  <div>
-    <label :for="id">{{ t('feed.mentionPerson') }}</label><select
-      :id="id"
-      v-model="chosen"
-      :disabled="loading"
-      @change="pick"
-    >
-      <option value="">{{ t('feed.chooseMention') }}</option>
-      <optgroup :label="t('members.students')">
-        <option
-          v-for="person in choices.people"
-          :key="person.id"
-          :value="'@' + person.username"
-        >
-          {{ person.full_name }} (@{{ person.username }})
-        </option>
-      </optgroup>
-      <optgroup :label="t('feed.groups')">
-        <option
-          v-for="group in choices.groups"
-          :key="group.id"
-          :value="'@group:' + group.mention_handle"
-        >
-          {{ group.name }}
-        </option>
-      </optgroup>
-    </select>
+  <details class="mention-picker">
+    <summary>{{ t('feed.mentionPerson') }}</summary>
+    <div class="mention-picker-content">
+      <label :for="id">{{ t('feed.chooseMention') }}</label>
+      <select :id="id" v-model="chosen" :disabled="loading" @change="pick">
+        <option value="">{{ t('feed.chooseMention') }}</option>
+        <optgroup :label="t('members.students')">
+          <option
+            v-for="person in choices.people"
+            :key="person.id"
+            :value="'@' + person.username"
+          >
+            {{ person.full_name }} (@{{ person.username }})
+          </option>
+        </optgroup>
+        <optgroup :label="t('feed.groups')">
+          <option
+            v-for="group in choices.groups"
+            :key="group.id"
+            :value="'@group:' + group.mention_handle"
+          >
+            {{ group.name }}
+          </option>
+        </optgroup>
+      </select>
+    </div>
     <p v-if="error" role="alert">{{ t('feed.mentionError') }}</p>
-  </div>
+  </details>
 </template>
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
@@ -57,3 +56,35 @@ onMounted(async () => {
   }
 });
 </script>
+<style scoped>
+.mention-picker {
+  margin-block: 8px;
+}
+
+.mention-picker summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  width: fit-content;
+  padding: 8px 10px;
+  border-radius: 9px;
+  color: var(--primary);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mention-picker summary:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.mention-picker-content {
+  max-width: 480px;
+  padding: 4px 10px 10px;
+}
+
+.mention-picker-content label {
+  margin-top: 8px;
+}
+</style>

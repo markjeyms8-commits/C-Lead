@@ -354,23 +354,23 @@
     margin: 4px;
   }
   .comment {
-    background: var(--hero);
-    padding: 16px !important;
-    border-radius: 14px;
-    margin-block: 12px;
+    background: transparent;
+    padding: 14px 0;
+    border-radius: 0;
+    margin-block: 0;
   }
   .comment button {
     background: transparent;
     color: var(--primary);
-    padding: 8px;
-    font-size: 0.8rem;
+    padding: 8px 10px;
+    font-size: 0.85rem;
   }
   .comment p {
     color: var(--text);
   }
   .comment .avatar {
-    float: left;
-    margin-inline-end: 10px;
+    float: none;
+    margin: 0;
   }
   .bottom-nav a.router-link-active {
     box-shadow: none;

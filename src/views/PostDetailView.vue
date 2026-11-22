@@ -1,21 +1,38 @@
 <template>
   <AppLayout :title="t('feed.post')"
-    ><section v-if="route.path === viewPath" class="card">
+    ><section v-if="route.path === viewPath" class="card post-detail">
       <p v-if="loading" role="status">{{ t('account.loading') }}</p>
       <p v-if="error" role="alert">{{ t('feed.error') }}</p>
       <button v-if="error" @click="load">{{ t('account.retry') }}</button>
       <p v-if="success" role="status">{{ t('feed.saved') }}</p>
-      <template v-if="post"
-        ><h1>{{ post.title }}</h1>
-        <p>
-          {{ authorName(post.author_id) }} · {{ t(`feed.${post.kind}`) }} ·
-          {{ t(`feed.${post.state}`)
-          }}<span v-if="post.edited_at"> · {{ t('feed.edited') }}</span>
-        </p>
-        <p v-if="post.publish_at">{{ dateManila(post.publish_at, locale) }}</p>
-        <p v-if="post.hidden_at">{{ t('feed.hidden') }}</p>
-        <RichText :body="post.body" />
-        <nav class="link-grid">
+      <template v-if="post">
+        <article
+          class="post-content"
+          :class="{
+            'is-announcement': post.kind === 'announcement',
+            'is-pinned': post.pinned,
+          }"
+        >
+          <div class="post-context">
+            <span class="pill post-kind-pill" :class="post.kind">
+              {{ t(`feed.${post.kind}`) }}
+            </span>
+            <span class="post-status">{{ t(`feed.${post.state}`) }}</span>
+          </div>
+          <h1 class="post-title">{{ post.title }}</h1>
+          <p class="post-meta">
+            {{ authorName(post.author_id) }}
+            <span v-if="post.edited_at">· {{ t('feed.edited') }}</span>
+          </p>
+          <p v-if="post.publish_at" class="post-date">
+            {{ dateManila(post.publish_at, locale) }}
+          </p>
+          <p v-if="post.hidden_at" class="post-hidden">
+            {{ t('feed.hidden') }}
+          </p>
+          <RichText :body="post.body" />
+        </article>
+        <nav class="link-grid post-actions">
           <RouterLink
             v-if="permissions.editable"
             :to="`/announcements/${post.id}/edit`"
@@ -46,6 +63,7 @@
         />
         <button
           v-if="permissions.editable || post.deletion_requested_at"
+          class="post-delete-action"
           :disabled="busy || !online"
           @click="deleting = true"
         >
@@ -57,12 +75,14 @@
             )
           }}
         </button>
-        <ReactionBar
-          :items="reactions.filter((r) => !r.comment_id)"
-          :disabled="!permissions.interactable || busy || !online"
-          @choose="(value) => changeReaction(null, value)"
-        />
-        <section v-if="decisions.length">
+        <div class="post-reactions">
+          <ReactionBar
+            :items="reactions.filter((r) => !r.comment_id)"
+            :disabled="!permissions.interactable || busy || !online"
+            @choose="(value) => changeReaction(null, value)"
+          />
+        </div>
+        <section v-if="decisions.length" class="review-history">
           <h2>{{ t('feed.decisions') }}</h2>
           <ul>
             <li v-for="decision in decisions" :key="decision.id">
@@ -79,66 +99,85 @@
           @cancel="reporting = false"
           @submit="sendReport"
         />
-        <h2>{{ t('feed.comments') }}</h2>
-        <p v-if="!comments.length">{{ t('feed.noComments') }}</p>
-        <CommentItem
-          v-for="comment in displayComments"
-          :key="comment.id"
-          :comment="comment"
-          :author="authorName(comment.author_id)"
-          :reactions="reactions.filter((r) => r.comment_id === comment.id)"
-          :own="comment.author_id === auth.profile?.id"
-          :disabled="!permissions.interactable || busy || !online"
-          @react="(value) => changeReaction(comment.id, value)"
-          @reply="replyTo(comment)"
-          @edit="editComment(comment)"
-          @remove="removeComment(comment)"
-          @report="
-            reportTarget = comment.id;
-            reporting = true;
-          "
-        />
-        <form v-if="permissions.interactable" @submit="submitComment">
-          <h3>
-            {{
-              t(
-                editing
-                  ? 'feed.editComment'
-                  : parent
-                    ? 'feed.reply'
-                    : 'feed.addComment',
-              )
-            }}
-          </h3>
-          <label :for="fieldPrefix + '-comment-body'">{{
-            t('feed.commentText')
-          }}</label><textarea
-            :id="fieldPrefix + '-comment-body'"
-            ref="commentInput"
-            v-model="commentBody"
-            v-bind="commentAttrs"
-            maxlength="3000"
-            :aria-invalid="!!errors.body"
-            :aria-describedby="fieldPrefix + '-comment-error'"
-          />
-          <p :id="fieldPrefix + '-comment-error'" class="field-error">
-            {{ errors.body ? t('feed.invalid') : '' }}
+        <section class="comments-section">
+          <header class="comments-heading">
+            <h2>{{ t('feed.comments') }}</h2>
+            <span class="comments-count">{{ comments.length }}</span>
+          </header>
+          <p v-if="!comments.length" class="comments-empty">
+            {{ t('feed.noComments') }}
           </p>
-          <p>{{ t('feed.mentionHelp') }}</p>
-          <MentionPicker
-            @pick="(value) => (commentBody += ' ' + value + ' ')"
-          /><button :disabled="busy || isSubmitting || !online">
-            {{ t('module.save') }}</button
-          ><button
-            v-if="editing || parent"
-            type="button"
-            class="secondary"
-            @click="clearComment"
+          <div class="comment-list">
+            <CommentItem
+              v-for="comment in displayComments"
+              :key="comment.id"
+              :comment="comment"
+              :author="authorName(comment.author_id)"
+              :reactions="reactions.filter((r) => r.comment_id === comment.id)"
+              :parent-label="parentAuthor(comment)"
+              :own="comment.author_id === auth.profile?.id"
+              :disabled="!permissions.interactable || busy || !online"
+              @react="(value) => changeReaction(comment.id, value)"
+              @reply="replyTo(comment)"
+              @edit="editComment(comment)"
+              @remove="removeComment(comment)"
+              @report="
+                reportTarget = comment.id;
+                reporting = true;
+              "
+            />
+          </div>
+          <form
+            v-if="permissions.interactable"
+            class="comment-composer"
+            @submit="submitComment"
           >
-            {{ t('academic.cancel') }}
-          </button>
-        </form>
-        <p v-else>{{ t('feed.readOnly') }}</p>
+            <h3>
+              {{
+                t(
+                  editing
+                    ? 'feed.editComment'
+                    : parent
+                      ? 'feed.reply'
+                      : 'feed.addComment',
+                )
+              }}
+            </h3>
+            <label :for="fieldPrefix + '-comment-body'">{{
+              t('feed.commentText')
+            }}</label>
+            <textarea
+              :id="fieldPrefix + '-comment-body'"
+              ref="commentInput"
+              v-model="commentBody"
+              v-bind="commentAttrs"
+              maxlength="3000"
+              :aria-invalid="!!errors.body"
+              :aria-describedby="fieldPrefix + '-comment-error'"
+            />
+            <p :id="fieldPrefix + '-comment-error'" class="field-error">
+              {{ errors.body ? t('feed.invalid') : '' }}
+            </p>
+            <p class="comment-help">{{ t('feed.mentionHelp') }}</p>
+            <MentionPicker
+              @pick="(value) => (commentBody += ' ' + value + ' ')"
+            />
+            <div class="comment-form-actions">
+              <button :disabled="busy || isSubmitting || !online">
+                {{ t('module.save') }}
+              </button>
+              <button
+                v-if="editing || parent"
+                type="button"
+                class="secondary"
+                @click="clearComment"
+              >
+                {{ t('academic.cancel') }}
+              </button>
+            </div>
+          </form>
+          <p v-else class="comments-read-only">{{ t('feed.readOnly') }}</p>
+        </section>
       </template>
     </section></AppLayout
   >
@@ -234,6 +273,14 @@ const displayComments = computed(() => {
 });
 const authorName = (user: string) =>
   names.value[user] ?? t('feed.formerMember');
+const parentAuthor = (comment: Comment) => {
+  const parentComment = comments.value.find(
+    (item) => item.id === comment.parent_id,
+  );
+  return parentComment
+    ? authorName(parentComment.author_id)
+    : t('feed.formerMember');
+};
 async function load() {
   const version = ++revision;
   loading.value = true;
