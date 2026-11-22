@@ -1039,6 +1039,13 @@ button,
   color: var(--primary);
   font-weight: 800;
 }
+
+.card > h1:first-child {
+  margin: 0 0 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.2;
+}
 .welcome-card .button {
   font-size: 0.9rem;
 }
@@ -1216,6 +1223,43 @@ main {
   max-height: 100px;
 }
 
+.classroom-tools {
+  margin-bottom: 14px;
+}
+
+.classroom-tools .section-heading {
+  margin-bottom: 4px;
+}
+
+.classroom-tools .shortcut-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 8px;
+  margin: 0;
+}
+
+.classroom-tools .shortcut {
+  min-height: 52px;
+}
+
+.community-note {
+  padding: 4px 12px 8px;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.community-note p {
+  margin: 0 0 6px;
+}
+
+.community-note a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+}
+
 .class-summary {
   margin-top: 12px;
   padding: 14px 18px;
@@ -1314,6 +1358,33 @@ main {
 
 .card > .page-hero h1 {
   font-size: clamp(1.5rem, 2.5vw, 1.85rem);
+}
+
+.report-filters {
+  margin: 20px 0 14px;
+  padding: 8px 14px 14px;
+}
+
+.report-filters legend {
+  color: var(--primary);
+}
+
+.report-period {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 14px;
+}
+
+.report-export-options {
+  max-width: 320px;
+}
+
+.report-export-options label {
+  display: block;
+}
+
+.report-export-options select {
+  margin-bottom: 14px;
 }
 
 .card > article.card,
@@ -1511,12 +1582,16 @@ label {
   }
 
   .class-summary {
-    margin: 10px 0 18px;
+    margin: 0;
   }
 
   .dashboard-columns {
     grid-template-columns: 1fr;
     gap: 18px;
+  }
+
+  .report-period {
+    grid-template-columns: 1fr;
   }
 
   .right-column .shortcut-grid {

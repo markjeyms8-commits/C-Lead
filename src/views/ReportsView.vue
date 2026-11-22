@@ -9,47 +9,55 @@
         {{ t('account.retry') }}
       </button>
       <form @submit.prevent="submit">
-        <label :for="uid + 'term'">{{ t('insights.term') }}</label><select
-          :id="uid + 'term'"
-          v-model="term"
-        >
-          <option value="">{{ t('insights.all') }}</option>
-          <option v-for="x in terms" :key="x.id" :value="x.id">
-            {{ x.name }}
-          </option></select
-        ><template v-if="kind === 'attendance'"
-          ><label :for="uid + 'subject'">{{ t('insights.subject') }}</label
-          ><select :id="uid + 'subject'" v-model="subject">
+        <fieldset class="report-filters">
+          <legend>{{ t('insights.scope') }}</legend>
+          <label :for="uid + 'term'">{{ t('insights.term') }}</label>
+          <select :id="uid + 'term'" v-model="term">
             <option value="">{{ t('insights.all') }}</option>
-            <option v-for="x in subjects" :key="x.id" :value="x.id">
+            <option v-for="x in terms" :key="x.id" :value="x.id">
               {{ x.name }}
             </option>
-          </select></template
-        ><label :for="uid + 'event'">{{ t('insights.event') }}</label
-        ><select :id="uid + 'event'" v-model="event">
-          <option value="">{{ t('insights.all') }}</option>
-          <option v-for="x in events" :key="x.id" :value="x.id">
-            {{ x.title }}
-          </option></select
-        ><label v-if="kind === 'attendance'" :for="uid + 'student'"
-          >{{ t('insights.student')
-          }}<select :id="uid + 'student'" v-model="student">
+          </select>
+          <template v-if="kind === 'attendance'">
+            <label :for="uid + 'subject'">{{ t('insights.subject') }}</label>
+            <select :id="uid + 'subject'" v-model="subject">
+              <option value="">{{ t('insights.all') }}</option>
+              <option v-for="x in subjects" :key="x.id" :value="x.id">
+                {{ x.name }}
+              </option>
+            </select>
+          </template>
+          <label :for="uid + 'event'">{{ t('insights.event') }}</label>
+          <select :id="uid + 'event'" v-model="event">
             <option value="">{{ t('insights.all') }}</option>
-            <option v-for="x in roster" :key="x.id" :value="x.id">
-              {{ x.full_name }}
+            <option v-for="x in events" :key="x.id" :value="x.id">
+              {{ x.title }}
             </option>
-          </select></label
-        ><label :for="uid + 'from'">{{ t('insights.from') }}</label
-        ><input :id="uid + 'from'" v-model="from" type="date" /><label
-          :for="uid + 'to'"
-          >{{ t('insights.to') }}</label
-        ><input :id="uid + 'to'" v-model="to" type="date" /><label
-          :for="uid + 'format'"
-          >{{ t('insights.format') }}</label
-        ><select :id="uid + 'format'" v-model="format">
-          <option value="pdf">PDF</option>
-          <option value="xlsx">Excel</option>
-        </select>
+          </select>
+          <label v-if="kind === 'attendance'" :for="uid + 'student'">
+            {{ t('insights.student') }}
+            <select :id="uid + 'student'" v-model="student">
+              <option value="">{{ t('insights.all') }}</option>
+              <option v-for="x in roster" :key="x.id" :value="x.id">
+                {{ x.full_name }}
+              </option>
+            </select>
+          </label>
+        </fieldset>
+        <fieldset class="report-filters report-period">
+          <legend>{{ t('insights.period') }}</legend>
+          <label :for="uid + 'from'">{{ t('insights.from') }}</label>
+          <input :id="uid + 'from'" v-model="from" type="date" />
+          <label :for="uid + 'to'">{{ t('insights.to') }}</label>
+          <input :id="uid + 'to'" v-model="to" type="date" />
+        </fieldset>
+        <div class="report-export-options">
+          <label :for="uid + 'format'">{{ t('insights.format') }}</label>
+          <select :id="uid + 'format'" v-model="format">
+            <option value="pdf">PDF</option>
+            <option value="xlsx">Excel</option>
+          </select>
+        </div>
         <p v-if="invalid" role="alert">{{ t('insights.invalid') }}</p>
         <button :disabled="isSubmitting || loading || !online">
           {{ t('insights.export') }}

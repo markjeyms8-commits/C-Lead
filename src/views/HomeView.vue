@@ -8,14 +8,6 @@
       </div>
       <CiMascot />
     </section>
-    <section class="welcome-card class-summary">
-      <div>
-        <span class="pill">{{ t('brand.section') }}</span>
-      </div>
-      <RouterLink to="/announcements" class="button"
-        >{{ t('viewAll') }} <span aria-hidden="true">→</span></RouterLink
-      >
-    </section>
     <div class="dashboard-columns">
       <section>
         <div class="section-heading">
@@ -23,17 +15,6 @@
           <RouterLink to="/announcements">{{ t('viewAll') }} →</RouterLink>
         </div>
         <FeedList v-if="auth.profile" /><template v-else>
-          <div class="feed-tabs" role="group" :aria-label="t('home.feed')">
-            <button
-              v-for="filter in ['all', 'official', 'discussions']"
-              :key="filter"
-              :class="{ selected: activeFilter === filter }"
-              :aria-pressed="activeFilter === filter"
-              @click="activeFilter = filter"
-            >
-              {{ t(`home.${filter}`) }}
-            </button>
-          </div>
           <div class="card">
             <div class="card-heading">
               <span class="round-icon">◎</span>
@@ -58,20 +39,25 @@
         </template>
       </section>
       <aside class="right-column">
-        <div class="shortcut-grid">
-          <RouterLink
-            v-for="item in shortcuts"
-            :key="item.path"
-            :to="item.path"
-            class="shortcut"
-            ><span class="shortcut-icon"
-              ><IonIcon :icon="item.icon" aria-hidden="true" /></span
-            ><span
-              ><strong>{{ t(item.title) }}</strong
-              ><small>{{ t(item.caption) }}</small></span
-            ><span class="arrow">↗</span></RouterLink
-          >
-        </div>
+        <section class="card classroom-tools">
+          <div class="section-heading">
+            <h2>{{ t('home.tools') }}</h2>
+          </div>
+          <nav class="shortcut-grid" :aria-label="t('home.tools')">
+            <RouterLink
+              v-for="item in shortcuts"
+              :key="item.path"
+              :to="item.path"
+              class="shortcut"
+              ><span class="shortcut-icon"
+                ><IonIcon :icon="item.icon" aria-hidden="true" /></span
+              ><span
+                ><strong>{{ t(item.title) }}</strong
+                ><small>{{ t(item.caption) }}</small></span
+              ><span class="arrow" aria-hidden="true">↗</span></RouterLink
+            >
+          </nav>
+        </section>
 
         <section class="card">
           <div class="section-heading">
@@ -97,12 +83,11 @@
             >{{ t('home.tasks') }} →</RouterLink
           >
         </section>
-        <section class="community-card">
-          <span class="eyebrow">{{ t('home.smallReminder') }}</span>
-          <h3>{{ t('home.kind') }}</h3>
+        <section class="community-note">
           <p>{{ t('home.kindBody') }}</p>
           <RouterLink to="/community-guidelines"
-            >{{ t('home.guidelines') }} ↗</RouterLink
+            >{{ t('home.guidelines') }}
+            <span aria-hidden="true">↗</span></RouterLink
           >
         </section>
       </aside>
@@ -162,7 +147,6 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import CiMascot from '@/components/common/CiMascot.vue';
 import EmptyState from '@/components/common/EmptyState.vue';
 const { t, locale } = useI18n();
-const activeFilter = ref('all');
 const shortcuts = [
   {
     path: '/attendance',
