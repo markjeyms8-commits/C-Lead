@@ -62,7 +62,7 @@
   >
 </template>
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { onIonViewWillEnter } from '@ionic/vue';
 import { useI18n } from 'vue-i18n';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -73,7 +73,9 @@ import { dateManila } from '@/services/modules/communication';
 const { t, locale } = useI18n(),
   auth = useAuthStore(),
   month = ref(manilaDay(Date.now()).slice(0, 7)),
-  view = ref('month'),
+  view = ref(
+    window.matchMedia('(max-width: 600px)').matches ? 'agenda' : 'month',
+  ),
   rows = ref<CalendarItem[]>([]),
   loading = ref(true),
   error = ref(false);
@@ -81,6 +83,10 @@ const admin = computed(() =>
   ['president', 'vice_president'].includes(auth.profile?.role ?? ''),
 );
 let revision = 0;
+const compactViewport = window.matchMedia('(max-width: 600px)');
+function adaptCalendarView(event: MediaQueryListEvent) {
+  if (event.matches) view.value = 'agenda';
+}
 const monthParts = computed(() =>
     (month.value || manilaDay(Date.now()).slice(0, 7)).split('-').map(Number),
   ),
@@ -133,6 +139,10 @@ async function load() {
 }
 onIonViewWillEnter(load);
 watch(month, load);
+onMounted(() => compactViewport.addEventListener('change', adaptCalendarView));
+onBeforeUnmount(() =>
+  compactViewport.removeEventListener('change', adaptCalendarView),
+);
 </script>
 <style scoped>
 .controls {
