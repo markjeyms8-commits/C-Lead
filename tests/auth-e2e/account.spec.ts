@@ -286,6 +286,12 @@ test('preferences persist and security notices cannot be disabled', async ({
   await page.getByRole('button', { name: 'Save', exact: true }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   expect(state.theme).toBe('dark');
+  await page.goto('/home');
+  await page.getByRole('button', { name: 'Theme' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
+  await expect.poll(() => state.theme).toBe('light');
+  await page.reload();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'light');
 });
 test('owned devices can be revoked and password can be changed', async ({
   page,

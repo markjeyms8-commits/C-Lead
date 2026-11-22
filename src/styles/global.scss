@@ -1392,6 +1392,14 @@ label {
   padding: 3px 13px;
 }
 
+.theme-sync-error {
+  margin: 0;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--border);
+  color: var(--danger);
+  font-size: 0.8rem;
+}
+
 @media (max-width: 1150px) {
   .dashboard-columns {
     grid-template-columns: minmax(0, 1fr) 260px;
@@ -1521,5 +1529,49 @@ label {
 
   .bottom-nav a {
     font-size: 0.64rem;
+  }
+}
+
+/* Motion confirms taps without shifting surrounding content. */
+button,
+.button,
+.shortcut,
+.link-grid a,
+.sidebar nav a,
+.bottom-nav a {
+  transition:
+    transform var(--motion-fast) var(--ease-standard),
+    box-shadow var(--motion-standard) var(--ease-standard);
+}
+
+button:active:enabled,
+.button:active,
+.shortcut:active,
+.link-grid a:active {
+  transform: scale(0.98);
+}
+
+.bottom-nav a.router-link-active ion-icon {
+  transition: transform var(--motion-standard) var(--ease-standard);
+  transform: scale(1.04);
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  button:enabled:hover,
+  .button:hover,
+  .shortcut:hover,
+  .link-grid a:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px #123f3214;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

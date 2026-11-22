@@ -58,7 +58,9 @@
               ><button
                 class="icon-button"
                 :aria-label="t('theme')"
-                @click="theme.toggle()"
+                :disabled="themeSaving"
+                :aria-busy="themeSaving"
+                @click="toggleTheme"
               >
                 <IonIcon
                   aria-hidden="true"
@@ -76,6 +78,9 @@
               /></RouterLink>
             </div>
           </header>
+          <p v-if="themeSaveError" class="theme-sync-error" role="alert">
+            {{ t('account.failed') }}
+          </p>
           <main id="main" :data-page-path="pagePath" tabindex="-1">
             <div v-if="!backendConfigured" class="preview-banner" role="status">
               <span>{{ t('preview') }}</span><RouterLink to="/login"
@@ -129,13 +134,44 @@ const pagePath = route.path;
 import CiMascot from '@/components/common/CiMascot.vue';
 import InitialsAvatar from '@/components/common/InitialsAvatar.vue';
 import { useAuthStore } from '@/stores/auth';
-import { useThemeStore, useLanguageStore } from '@/stores/app';
+import {
+  useThemeStore,
+  useLanguageStore,
+  useConnectivityStore,
+} from '@/stores/app';
 import { backendConfigured } from '@/config/env';
+import { savePreferences } from '@/services/auth/account';
+import { ref } from 'vue';
 defineProps<{ title: string }>();
 const { t } = useI18n();
 const auth = useAuthStore();
 const theme = useThemeStore();
 const language = useLanguageStore();
+const connectivity = useConnectivityStore();
+const themeSaving = ref(false);
+const themeSaveError = ref(false);
+async function toggleTheme() {
+  if (themeSaving.value) return;
+  themeSaveError.value = false;
+  theme.toggle();
+  if (!auth.profile) return;
+  if (!auth.settings || !connectivity.online) {
+    themeSaveError.value = true;
+    return;
+  }
+  themeSaving.value = true;
+  try {
+    const savedTheme: 'light' | 'dark' =
+      theme.current === 'dark' ? 'dark' : 'light';
+    const updated = { ...auth.settings, theme: savedTheme };
+    await savePreferences(updated);
+    auth.settings = updated;
+  } catch {
+    themeSaveError.value = true;
+  } finally {
+    themeSaving.value = false;
+  }
+}
 const mainNav = [
   { path: '/home', key: 'nav.home', icon: homeOutline },
   { path: '/announcements', key: 'nav.announcements', icon: megaphoneOutline },
