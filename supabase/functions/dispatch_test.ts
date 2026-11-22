@@ -2,6 +2,7 @@ import webpush from 'npm:web-push@3.6.7';
 import {
   handleDispatch,
   allowedEndpoint,
+  classifyFcmError,
 } from './dispatch-notifications/handler.ts';
 function assert(value: unknown, message = 'Assertion failed'): asserts value {
   if (!value) throw new Error(message);
@@ -160,6 +161,20 @@ const request = (secret = scheduler) =>
     method: 'POST',
     headers: { Authorization: `Bearer ${secret}` },
   });
+Deno.test('FCM diagnostic categories never expose provider error text', () => {
+  assert(
+    classifyFcmError(new Error('FCM authorization failed')) ===
+      'oauth_rejected',
+  );
+  assert(
+    classifyFcmError(new SyntaxError('private key contents')) ===
+      'invalid_credentials_json',
+  );
+  assert(
+    classifyFcmError(new TypeError('token value')) === 'transport_or_key_error',
+  );
+  assert(classifyFcmError(new Error('private key contents')) === 'unexpected');
+});
 Deno.test(
   'scheduler authorization fails before database or push requests',
   () =>

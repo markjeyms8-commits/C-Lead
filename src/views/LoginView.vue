@@ -1,69 +1,132 @@
 <template>
-  <IonPage
-    ><IonContent
-      ><main id="main" class="auth-layout">
-        <section class="auth-story">
-          <RouterLink to="/home" class="brand"
-            >C-LEAD <span>✦</span></RouterLink
+  <IonPage class="auth-page">
+    <IonContent class="auth-content">
+      <main id="main" class="auth-layout">
+        <section class="auth-story" aria-label="C-LEAD">
+          <RouterLink
+            to="/home"
+            class="auth-brand"
+            :aria-label="t('auth.homeLink')"
           >
-          <div>
+            <img
+              class="auth-brand-logo"
+              src="/icon-192.png"
+              alt=""
+              width="192"
+              height="192"
+            />
+          </RouterLink>
+
+          <div class="auth-story-copy">
             <p class="eyebrow">{{ t('brand.section') }}</p>
-            <h1>{{ t('home.hero') }}</h1>
+            <h2>{{ t('home.hero') }}</h2>
             <p>{{ t('brand.tagline') }}</p>
-            <CiMascot />
           </div>
-          <p>{{ t('brand.together') }}</p>
+
+          <CiMascot class="auth-mascot" />
+          <p class="auth-story-note">{{ t('brand.together') }}</p>
         </section>
-        <section class="auth-panel">
-          <span class="eyebrow">{{ t('auth.welcome') }}</span>
-          <h1>{{ t('auth.login') }}</h1>
-          <p>{{ t('auth.subtitle') }}</p>
-          <div v-if="!backendConfigured" class="notice">
+
+        <section class="auth-panel" aria-labelledby="sign-in-title">
+          <header class="auth-heading">
+            <p class="eyebrow">{{ t('auth.welcome') }}</p>
+            <h1 id="sign-in-title">{{ t('auth.login') }}</h1>
+            <p class="auth-subtitle">{{ t('auth.subtitle') }}</p>
+          </header>
+
+          <div v-if="!backendConfigured" class="notice" role="status">
             {{ t('auth.setup') }}
           </div>
-          <form @submit="submit">
-            <label for="username">{{ t('auth.username') }}</label><input
-              id="username"
-              v-model="username"
-              v-bind="usernameAttrs"
-              autocomplete="username"
-              :aria-invalid="!!errors.username"
-              aria-describedby="username-error"
-            /><span id="username-error" class="field-error">{{
-              errors.username ? t('auth.usernameError') : ''
-            }}</span
-            ><label for="password">{{ t('auth.password') }}</label
-            ><input
-              id="password"
-              v-model="password"
-              v-bind="passwordAttrs"
-              type="password"
-              autocomplete="current-password"
-              :aria-invalid="!!errors.password"
-              aria-describedby="password-error"
-            /><span id="password-error" class="field-error">{{
-              errors.password ? t('auth.passwordError') : ''
-            }}</span>
-            <p v-if="error" role="alert" class="field-error">{{ t(error) }}</p>
-            <p v-if="retrySeconds > 0" role="status">
+
+          <form class="auth-form" novalidate @submit="submit">
+            <div class="auth-field">
+              <label for="username">{{ t('auth.username') }}</label>
+              <input
+                id="username"
+                v-model="username"
+                v-bind="usernameAttrs"
+                name="username"
+                type="text"
+                autocomplete="username"
+                autocapitalize="none"
+                autocorrect="off"
+                spellcheck="false"
+                enterkeyhint="next"
+                :aria-invalid="!!errors.username"
+                :aria-describedby="
+                  errors.username ? 'username-error' : undefined
+                "
+              />
+              <p v-if="errors.username" id="username-error" class="field-error">
+                {{ t('auth.usernameError') }}
+              </p>
+            </div>
+
+            <div class="auth-field">
+              <label for="password">{{ t('auth.password') }}</label>
+              <div class="auth-password-field">
+                <input
+                  id="password"
+                  v-model="password"
+                  v-bind="passwordAttrs"
+                  :type="showPassword ? 'text' : 'password'"
+                  name="password"
+                  autocomplete="current-password"
+                  enterkeyhint="go"
+                  :aria-invalid="!!errors.password"
+                  :aria-describedby="
+                    errors.password ? 'password-error' : undefined
+                  "
+                />
+                <button
+                  class="auth-password-toggle"
+                  type="button"
+                  :aria-label="
+                    t(showPassword ? 'auth.hidePassword' : 'auth.showPassword')
+                  "
+                  :aria-pressed="showPassword"
+                  aria-controls="password"
+                  @click="showPassword = !showPassword"
+                >
+                  <IonIcon
+                    :icon="showPassword ? eyeOffOutline : eyeOutline"
+                    aria-hidden="true"
+                  />
+                </button>
+              </div>
+              <p v-if="errors.password" id="password-error" class="field-error">
+                {{ t('auth.passwordError') }}
+              </p>
+            </div>
+
+            <p v-if="error" role="alert" class="auth-alert">
+              {{ t(error) }}
+            </p>
+            <p v-if="retrySeconds > 0" role="status" class="auth-status">
               {{ t('account.retryAfter', { seconds: retrySeconds }) }}
             </p>
-            <p v-if="auth.invalidated" role="status">
+            <p v-if="auth.invalidated" role="status" class="auth-status">
               {{ t('account.invalidated') }}
             </p>
-            <p v-if="auth.unavailable" role="alert">
+            <p v-if="auth.unavailable" role="alert" class="auth-alert">
               {{ t('account.connectionFailed') }}
             </p>
+            <p v-if="!connectivity.online" role="status" class="auth-status">
+              {{ t('auth.offline') }}
+            </p>
+
             <button
               v-if="auth.unavailable"
               type="button"
-              class="secondary"
+              class="secondary auth-retry"
               @click="retryConnection"
             >
               {{ t('account.retry') }}
             </button>
             <button
+              class="auth-submit"
               type="submit"
+              :aria-busy="isSubmitting"
               :disabled="
                 !backendConfigured ||
                 isSubmitting ||
@@ -71,20 +134,35 @@
                 retrySeconds > 0
               "
             >
-              {{ t(isSubmitting ? 'auth.signingIn' : 'auth.login') }} →
+              <IonSpinner
+                v-if="isSubmitting"
+                name="crescent"
+                aria-hidden="true"
+              />
+              <span>{{
+                t(isSubmitting ? 'auth.signingIn' : 'auth.login')
+              }}</span>
+              <span v-if="!isSubmitting" aria-hidden="true">→</span>
             </button>
           </form>
-          <p class="fine-print">{{ t('auth.reset') }}</p>
-          <p class="fine-print">{{ t('auth.lockout') }}</p>
-          <RouterLink to="/home">{{ t('auth.explore') }} →</RouterLink>
+
+          <div class="auth-help">
+            <p>{{ t('auth.reset') }}</p>
+            <p>{{ t('auth.lockout') }}</p>
+          </div>
+
+          <RouterLink to="/home" class="auth-preview">
+            {{ t('auth.explore') }} <span aria-hidden="true">→</span>
+          </RouterLink>
         </section>
-      </main></IonContent
-    ></IonPage
-  >
+      </main>
+    </IonContent>
+  </IonPage>
 </template>
 <script setup lang="ts">
 import { ref, computed, onUnmounted, watch } from 'vue';
-import { IonPage, IonContent } from '@ionic/vue';
+import { IonContent, IonIcon, IonPage, IonSpinner } from '@ionic/vue';
+import { eyeOffOutline, eyeOutline } from 'ionicons/icons';
 import { useForm } from 'vee-validate';
 import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
@@ -99,6 +177,7 @@ const router = useRouter();
 const auth = useAuthStore();
 const connectivity = useConnectivityStore();
 const error = ref('');
+const showPassword = ref(false);
 const retryUntil = ref(0);
 const now = ref(Date.now());
 const timer = setInterval(() => {

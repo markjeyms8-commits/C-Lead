@@ -90,11 +90,29 @@ test('language and theme persist', async ({ page }) => {
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
 });
 test('unconfigured login fails closed', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/login');
   await expect(
     page.getByRole('button', { name: 'Sign in', exact: false }),
   ).toBeDisabled();
   await expect(page.getByLabel('Username', { exact: true })).toBeVisible();
+  await expect(page.locator('.auth-mascot')).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Show password' }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Show password' }).click();
+  await expect(page.getByLabel('Password', { exact: true })).toHaveAttribute(
+    'type',
+    'text',
+  );
+  await expect(
+    page.getByRole('button', { name: 'Hide password' }),
+  ).toHaveAttribute('aria-pressed', 'true');
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
   await expect(
     page.getByText('Supabase is not configured.', { exact: false }),
   ).toBeVisible();

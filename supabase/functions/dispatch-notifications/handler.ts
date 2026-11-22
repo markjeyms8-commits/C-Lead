@@ -41,6 +41,31 @@ type Job = {
 };
 const encoder = new TextEncoder();
 let cachedAccessToken: { value: string; expiresAt: number } | undefined;
+const oauthErrorCodes = new Set([
+  'access_denied',
+  'invalid_grant',
+  'invalid_request',
+  'invalid_scope',
+  'unauthorized_client',
+]);
+export function classifyFcmError(error: unknown): string {
+  if (!(error instanceof Error)) return 'unexpected';
+  if (error.message === 'FCM is not configured') return 'missing_secret';
+  if (error.message === 'Invalid FCM credentials') return 'invalid_credentials';
+  if (error.message === 'Invalid FCM project') return 'invalid_project';
+  if (error.message === 'FCM authorization failed') return 'oauth_rejected';
+  if (error.name === 'SyntaxError') return 'invalid_credentials_json';
+  if (error.name === 'TimeoutError' || error.name === 'AbortError')
+    return 'request_timeout';
+  if (
+    error.name === 'DataError' ||
+    error.name === 'OperationError' ||
+    error.name === 'InvalidCharacterError'
+  )
+    return 'invalid_signing_key';
+  if (error.name === 'TypeError') return 'transport_or_key_error';
+  return 'unexpected';
+}
 function base64Url(value: Uint8Array | string) {
   const bytes = typeof value === 'string' ? encoder.encode(value) : value;
   return btoa(String.fromCharCode(...bytes))
@@ -119,9 +144,21 @@ async function fcmAccessToken() {
   const value = (await response.json().catch(() => null)) as {
     access_token?: string;
     expires_in?: number;
+    error?: string;
   } | null;
-  if (!response.ok || !value?.access_token)
+  if (!response.ok || !value?.access_token) {
+    const providerCode = oauthErrorCodes.has(value?.error ?? '')
+      ? value!.error!
+      : 'other';
+    console.warn(
+      JSON.stringify({
+        event: 'fcm_oauth_failed',
+        status: response.status,
+        provider_code: providerCode,
+      }),
+    );
     throw new Error('FCM authorization failed');
+  }
   cachedAccessToken = {
     value: value.access_token,
     expiresAt: Date.now() + Math.max(60, value.expires_in ?? 3600) * 1000,
@@ -215,8 +252,22 @@ export async function handleDispatch(request: Request) {
               : sent.status === 429 || sent.status >= 500
                 ? 'retry'
                 : 'failed';
+          if (!sent.ok)
+            console.warn(
+              JSON.stringify({
+                event: 'fcm_provider_failed',
+                status: sent.status,
+                outcome,
+              }),
+            );
           await sent.body?.cancel();
-        } catch {
+        } catch (error) {
+          console.warn(
+            JSON.stringify({
+              event: 'fcm_send_retry',
+              reason: classifyFcmError(error),
+            }),
+          );
           outcome = 'retry';
         }
       } else if (allowedEndpoint(job.endpoint))

@@ -235,7 +235,12 @@ it('suppresses queued jobs when their approved device session is revoked', async
 });
 it('registers private session-scoped FCM devices and leases only native jobs', async () => {
   const token = 'fictional-fcm-registration-token-1234567890';
-  await asUser(db, 3, `select public.register_native_push('${token}')`);
+  const registration = await asUser(
+    db,
+    3,
+    `select public.register_native_push('${token}') id`,
+  );
+  const registrationId = registration.rows[0]!.id;
   expect(
     (await asUser(db, 3, `select public.my_native_push_enabled() enabled`))
       .rows,
@@ -254,6 +259,24 @@ it('registers private session-scoped FCM devices and leases only native jobs', a
   await db.exec(
     `select private.notify_recipient('${userId(3)}','tasks','Private title','Pribadong pamagat','Private body','Pribadong nilalaman','/tasks/${task}')`,
   );
+  expect(
+    (await asUser(db, 3, `select public.register_native_push('${token}') id`))
+      .rows,
+  ).toEqual([{ id: registrationId }]);
+  expect(
+    (
+      await db.query(
+        `select count(*)::integer as active from private.push_subscriptions where user_id='${userId(3)}' and provider='fcm' and disabled_at is null`,
+      )
+    ).rows,
+  ).toEqual([{ active: 1 }]);
+  expect(
+    (
+      await db.query(
+        `select count(*)::integer as registrations from public.audit_logs where actor_id='${userId(3)}' and action='push_enabled' and target_type='push_subscriptions'`,
+      )
+    ).rows,
+  ).toEqual([{ registrations: 1 }]);
   const job = (
     await db.query<{
       job_id: string;
