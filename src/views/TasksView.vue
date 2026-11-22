@@ -161,13 +161,13 @@
         </select>
         <p v-if="!loading && !rows.length">{{ t('tasks.empty') }}</p>
         <article v-for="entry in rows" :key="entry.id" class="task-card">
-          <span class="pill">{{ t(`tasks.${entry.status}`) }}</span>
+          <span class="pill task-status">{{ t(`tasks.${entry.status}`) }}</span>
           <h2>
             <RouterLink :to="`/tasks/${entry.id}`">{{
               entry.title
             }}</RouterLink>
           </h2>
-          <p>
+          <p class="task-deadline">
             {{ t('tasks.deadline') }}: {{ dateManila(entry.deadline, locale) }}
           </p>
           <span class="pill">{{ t(`tasks.${entry.target_type}`) }}</span>

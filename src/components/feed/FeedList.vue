@@ -38,11 +38,21 @@
     <p v-if="error" role="alert">{{ t('feed.error') }}</p>
     <button v-if="error" @click="load">{{ t('account.retry') }}</button>
     <p v-if="!loading && !rows.length">{{ t('feed.empty') }}</p>
-    <article v-for="post in rows" :key="post.id" class="card feed-card">
+    <article
+      v-for="post in rows"
+      :key="post.id"
+      class="card feed-card"
+      :class="{
+        'is-pinned': post.pinned,
+        'is-announcement': post.kind === 'announcement',
+      }"
+    >
       <div v-if="post.pinned" class="pinned-banner">
         <span aria-hidden="true">◆</span> {{ t('feed.pinned') }}
       </div>
-      <span class="pill">{{ t(`feed.${post.kind}`) }}</span>
+      <span class="pill post-kind-pill" :class="post.kind">{{
+        t(`feed.${post.kind}`)
+      }}</span>
       <h2>
         <RouterLink :to="`/announcements/${post.id}`">{{
           post.title

@@ -1242,6 +1242,111 @@ main {
   min-height: 52px;
 }
 
+.feed-card.is-announcement {
+  border-inline-start: 4px solid var(--primary);
+  background: var(--hero);
+}
+
+.feed-card.is-pinned {
+  border: 2px solid var(--gold-border);
+  border-inline-start-width: 5px;
+  border-inline-start-color: var(--gold);
+  background: var(--gold-surface);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--gold) 14%, transparent);
+}
+
+.feed-card.is-pinned .pinned-banner {
+  margin: -1.25rem -1.25rem 1rem;
+  padding: 0.7rem 1.25rem;
+  background: var(--gold-surface);
+  color: var(--gold-text);
+  border-bottom: 2px solid var(--gold-border);
+  letter-spacing: 0.04em;
+}
+
+.feed-card.is-pinned h2,
+.feed-card.is-announcement h2 {
+  font-size: clamp(1.15rem, 2vw, 1.35rem);
+}
+
+.post-kind-pill.announcement {
+  background: var(--mint);
+  color: var(--primary);
+}
+
+.task-card {
+  margin-block: 12px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-inline-start: 4px solid var(--primary);
+  border-radius: 14px;
+  background: var(--surface);
+}
+
+.task-card .task-status {
+  display: inline-flex;
+  min-height: 32px;
+  align-items: center;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: var(--mint);
+  color: var(--primary);
+  font-weight: 750;
+}
+
+.task-card .task-deadline {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--hero);
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.record-status {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 32px;
+  align-items: center;
+  margin: 4px 0 12px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-weight: 750;
+}
+
+.record-status.paid {
+  background: var(--mint);
+  color: var(--primary);
+}
+
+.record-status.unpaid {
+  background: var(--gold-surface);
+  color: var(--gold-text);
+  border: 1px solid var(--gold-border);
+}
+
+.agenda-item {
+  margin-block: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-inline-start: 4px solid var(--primary);
+  border-radius: 12px;
+  background: var(--surface);
+}
+
+.agenda-item > a {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  font-weight: 750;
+}
+
+.agenda-item p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
 .community-note {
   padding: 4px 12px 8px;
   color: var(--muted);

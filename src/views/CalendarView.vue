@@ -50,7 +50,7 @@
         </section>
       </div>
       <ol v-else class="agenda">
-        <li v-for="item in rows" :key="item.kind + item.id">
+        <li v-for="item in rows" :key="item.kind + item.id" class="agenda-item">
           <RouterLink :to="item.path">{{ item.title }}</RouterLink>
           <p>
             {{ t(`calendar.${item.kind}`) }} ·

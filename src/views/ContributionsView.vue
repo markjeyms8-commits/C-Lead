@@ -103,7 +103,9 @@
         <p v-if="!visibleRecords.length">{{ t('contributions.noRecords') }}</p>
         <article v-for="r in visibleRecords" :key="r.id" class="card">
           <h3>{{ name(r.student_id) }}</h3>
-          <p>{{ t(`contributions.${r.status}`) }}</p>
+          <p class="record-status" :class="r.status">
+            {{ t(`contributions.${r.status}`) }}
+          </p>
           <template v-if="writable"
             ><label :for="uid + r.id">{{ t('contributions.status') }}</label
             ><select :id="uid + r.id" v-model="statuses[r.id]">
